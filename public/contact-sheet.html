@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nitaara Tower — Scraped Asset Contact Sheet</title>
+  <style>
+    :root {
+      --gold: #c59b3c;
+      --bg: #1c1b1a;
+      --surface: #262523;
+      --border: rgba(197, 155, 60, 0.25);
+      --text: #f0ede8;
+      --muted: #a39e96;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1400px;
+      margin: 0 auto 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    h1 { color: var(--gold); font-size: 28px; font-weight: 600; letter-spacing: 0.5px; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .badge {
+      background: rgba(197, 155, 60, 0.15);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .category {
+      max-width: 1400px;
+      margin: 0 auto 40px;
+    }
+    .category-title {
+      font-size: 20px;
+      color: var(--gold);
+      margin-bottom: 16px;
+      border-left: 3px solid var(--gold);
+      padding-left: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--gold);
+    }
+    .img-wrap {
+      width: 100%;
+      height: 220px;
+      background: #121211;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .info {
+      padding: 14px 16px;
+      font-size: 13px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .name { font-weight: 600; color: #fff; font-size: 14px; word-break: break-all; }
+    .dims { color: var(--gold); font-family: monospace; font-size: 12px; }
+    .desc { color: var(--muted); font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Nitaara Tower — Scraped Asset Contact Sheet</h1>
+      <p class="meta">Origin: https://nitaaratowernigdi.com/ | Total Assets: 30 verified (0 FAIL)</p>
+    </div>
+    <span class="badge">Phase N1 Gate Complete</span>
+  </header>
+
+  <!-- BANNERS -->
+  <section class="category">
+    <div class="category-title">
+      <span>1. Tower Banners & Perspectives (7 items)</span>
+      <span class="meta">desk1–4 (2000×857), mob1–3 (500×600)</span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/desk1.jpg" alt="desk1"></div>
+        <div class="info">
+          <div class="name">banner/desk1.jpg (Primary Explorer Base)</div>
+          <div class="dims">2000 × 857 px · 110.3 KB</div>
+          <div class="desc">Full tower street perspective showing all 25 residential floors + crown terrace.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/desk2.jpg" alt="desk2"></div>
+        <div class="info">
+          <div class="name">banner/desk2.jpg (Aerial Highway Sunset)</div>
+          <div class="dims">2000 × 857 px · 85.5 KB</div>
+          <div class="desc">Expressway flyover foreground with illuminated dusk high-rise profile.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/desk3.jpg" alt="desk3"></div>
+        <div class="info">
+          <div class="name">banner/desk3.jpg (Rooftop Sky Deck & Pool)</div>
+          <div class="dims">2000 × 857 px · 164.1 KB</div>
+          <div class="desc">Level 26 aerial view: infinity pool, cabana terrace, and play deck.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/desk4.jpg" alt="desk4"></div>
+        <div class="info">
+          <div class="name">banner/desk4.jpg (Entrance Gate & Podium)</div>
+          <div class="dims">2000 × 857 px · 162.0 KB</div>
+          <div class="desc">Ground arrival gate, security point, and landscaped drive.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/mob1.jpg" alt="mob1"></div>
+        <div class="info">
+          <div class="name">banner/mob1.jpg (Mobile Tower Hero)</div>
+          <div class="dims">500 × 600 px · 226.5 KB</div>
+          <div class="desc">Portrait vertical crop of desk1 showing full 25 floors for mobile explorer.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/mob2.jpg" alt="mob2"></div>
+        <div class="info">
+          <div class="name">banner/mob2.jpg (Mobile Dusk View)</div>
+          <div class="dims">500 × 600 px · 295.5 KB</div>
+          <div class="desc">Portrait aerial sunset view optimized for smaller displays.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/banner/mob3.jpg" alt="mob3"></div>
+        <div class="info">
+          <div class="name">banner/mob3.jpg (Mobile Sky Amenities)</div>
+          <div class="dims">500 × 600 px · 363.9 KB</div>
+          <div class="desc">Portrait view of rooftop swimming pool and terrace.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOOR PLANS -->
+  <section class="category">
+    <div class="category-title">
+      <span>2. Floor Plans & Master Key Plan (4 items)</span>
+      <span class="meta">1000×543 architectural CAD drawings</span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/floorplan/floor-plan1.jpg" alt="3 BHK Type 01"></div>
+        <div class="info">
+          <div class="name">floorplan/floor-plan1.jpg (3 BHK Type 01)</div>
+          <div class="dims">1000 × 543 px · 67.6 KB</div>
+          <div class="desc">Flat X01: 1,058 sq ft carpet + 189 sq ft balcony = 1,247 sq ft total (₹1.85 Cr).</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/floorplan/floor-plan2.jpg" alt="3 BHK Type 02"></div>
+        <div class="info">
+          <div class="name">floorplan/floor-plan2.jpg (3 BHK Type 02)</div>
+          <div class="dims">1000 × 543 px · 72.8 KB</div>
+          <div class="desc">Flat X02: 1,050 sq ft carpet + 195 sq ft balcony = 1,245 sq ft total (₹1.85 Cr).</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/floorplan/floor-plan3.jpg" alt="4 BHK"></div>
+        <div class="info">
+          <div class="name">floorplan/floor-plan3.jpg (4 BHK)</div>
+          <div class="dims">1000 × 543 px · 115.1 KB</div>
+          <div class="desc">Flat X03: 1,380 sq ft carpet + 212 sq ft balcony = 1,592 sq ft total (₹2.36 Cr).</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/floorplan/master-plan.jpg" alt="First Floor Plan"></div>
+        <div class="info">
+          <div class="name">floorplan/master-plan.jpg (First Floor Plan & Schedule)</div>
+          <div class="dims">1000 × 543 px · 167.9 KB</div>
+          <div class="desc">Confirms 3 units/floor, 3 elevators, 2 staircases, and podium garden layout.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AMENITIES -->
+  <section class="category">
+    <div class="category-title">
+      <span>3. Lifestyle Amenities (7 items)</span>
+      <span class="meta">1000×543 high-resolution 3D renders</span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/co-working-space.jpg" alt="Co-working space"></div>
+        <div class="info">
+          <div class="name">amenities/co-working-space.jpg</div>
+          <div class="dims">1000 × 543 px · 70.3 KB</div>
+          <div class="desc">Executive work stations & quiet meeting area.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/gym.jpg" alt="Gym"></div>
+        <div class="info">
+          <div class="name">amenities/gym.jpg</div>
+          <div class="dims">1000 × 543 px · 83.6 KB</div>
+          <div class="desc">Fully equipped strength & cardio fitness center.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/indoor-games.jpg" alt="Indoor games"></div>
+        <div class="info">
+          <div class="name">amenities/indoor-games.jpg</div>
+          <div class="dims">1000 × 543 px · 70.1 KB</div>
+          <div class="desc">Table tennis, chess, and recreation lounge.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/kids-play-area.jpg" alt="Kids play area"></div>
+        <div class="info">
+          <div class="name">amenities/kids-play-area.jpg</div>
+          <div class="dims">1000 × 543 px · 94.1 KB</div>
+          <div class="desc">Dedicated outdoor play equipment and turf.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/lobby.jpg" alt="Lobby"></div>
+        <div class="info">
+          <div class="name">amenities/lobby.jpg</div>
+          <div class="dims">1000 × 543 px · 78.4 KB</div>
+          <div class="desc">Double-height entrance lobby & reception.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/senior-citizen-sitout-area.jpg" alt="Senior citizen sitout"></div>
+        <div class="info">
+          <div class="name">amenities/senior-citizen-sitout-area.jpg</div>
+          <div class="dims">1000 × 543 px · 113.3 KB</div>
+          <div class="desc">Quiet garden seating under shaded pergolas.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/amenities/yoga-deck.jpg" alt="Yoga deck"></div>
+        <div class="info">
+          <div class="name">amenities/yoga-deck.jpg</div>
+          <div class="dims">1000 × 543 px · 84.5 KB</div>
+          <div class="desc">Open sky meditation & wellness platform.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRANDING & CERTIFICATIONS -->
+  <section class="category">
+    <div class="category-title">
+      <span>4. Brand Assets, RERA & Marketing Badges (12 items)</span>
+      <span class="meta">Logos, RERA certificates, developer credentials</span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="img-wrap" style="background:#000;"><img src="/assets/nitaara/logo-white2.png" alt="Logo"></div>
+        <div class="info">
+          <div class="name">logo-white2.png (Primary White Brand Logo)</div>
+          <div class="dims">1000 × 500 px · 183.6 KB</div>
+          <div class="desc">Official Nitaara Tower emblem and landmark tagline.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/logo-favcon.png" alt="Favicon"></div>
+        <div class="info">
+          <div class="name">logo-favcon.png (Square Favicon)</div>
+          <div class="dims">100 × 100 px · 10.7 KB</div>
+          <div class="desc">Tab favicon & touch icon.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/rera.png" alt="RERA Badge"></div>
+        <div class="info">
+          <div class="name">rera.png (MahaRERA Badge)</div>
+          <div class="dims">150 × 150 px · 36.9 KB</div>
+          <div class="desc">MahaRERA reg. P52100050692 seal.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/qr1.jpg" alt="RERA QR"></div>
+        <div class="info">
+          <div class="name">qr1.jpg (MahaRERA QR Code)</div>
+          <div class="dims">100 × 100 px · 10.0 KB</div>
+          <div class="desc">Scannable QR leading to Maharashtra RERA portal.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/project-by.png" alt="Developers"></div>
+        <div class="info">
+          <div class="name">project-by.png (Joint Venture Lockup)</div>
+          <div class="dims">707 × 353 px · 37.0 KB</div>
+          <div class="desc">ABC Corp · Mittal Group · Success Group.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/landmark.png" alt="Landmark"></div>
+        <div class="info">
+          <div class="name">landmark.png (Admired Landmarks)</div>
+          <div class="dims">128 × 128 px · 7.0 KB</div>
+          <div class="desc">Trust badge 1.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/delivery.png" alt="Delivery"></div>
+        <div class="info">
+          <div class="name">delivery.png (On-Time Delivery)</div>
+          <div class="dims">128 × 128 px · 7.8 KB</div>
+          <div class="desc">Trust badge 2.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/construction.png" alt="Construction"></div>
+        <div class="info">
+          <div class="name">construction.png (Quality Construction)</div>
+          <div class="dims">128 × 128 px · 8.4 KB</div>
+          <div class="desc">Trust badge 3.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/map.jpg" alt="Map"></div>
+        <div class="info">
+          <div class="name">map.jpg (Location Roadmap)</div>
+          <div class="dims">1500 × 1052 px · 185.8 KB</div>
+          <div class="desc">Bhakti Shakti Chowk, Expressway & Metro route map.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/about.jpg" alt="About"></div>
+        <div class="info">
+          <div class="name">about.jpg (Overview Visual)</div>
+          <div class="dims">1000 × 665 px · 177.1 KB</div>
+          <div class="desc">Architectural elevation detail for about section.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/texture-bg.jpg" alt="Texture"></div>
+        <div class="info">
+          <div class="name">texture-bg.jpg (Background Pattern)</div>
+          <div class="dims">2000 × 1012 px · 15.6 KB</div>
+          <div class="desc">Subtle dark noise pattern for developer panels.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="img-wrap"><img src="/assets/nitaara/ph_icons.png" alt="Phone Icon"></div>
+        <div class="info">
+          <div class="name">ph_icons.png (Contact Icon)</div>
+          <div class="dims">20 × 22 px · 3.2 KB</div>
+          <div class="desc">Mini telephone handset glyph.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
+

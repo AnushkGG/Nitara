@@ -1,18 +1,29 @@
 :root {
-  --ink: #f4efe6;
-  --ink-dim: rgba(244, 239, 230, 0.66);
-  --ink-faint: rgba(244, 239, 230, 0.38);
-  --night: #070b14;
-  --panel: rgba(9, 13, 22, 0.86);
-  --line: rgba(244, 239, 230, 0.18);
-  --gold: #d8b77a;
-  --dot: #3d8bff;
-  --ok: #7fd3a4;
+  /* Nitaara Tower Builder Identity Tokens */
+  --nitaara-gold: #c59b3c;
+  --nitaara-gold-hover: #d4af37;
+  --nitaara-gold-dark: #9c7728;
+  --nitaara-bg-dark: #22211f;
+  --nitaara-bg-surface: #2b2a28;
+  --nitaara-bg-surface-elevated: #363532;
+  --nitaara-text-primary: #ffffff;
+  --nitaara-text-secondary: #e0deda;
+  --nitaara-text-muted: #aaaaaa;
+
+  /* App Theme Compatibility Mappings */
+  --ink: #ffffff;
+  --ink-dim: rgba(255, 255, 255, 0.75);
+  --ink-faint: rgba(255, 255, 255, 0.45);
+  --night: #22211f;
+  --panel: rgba(34, 33, 31, 0.92);
+  --line: rgba(197, 155, 60, 0.25);
+  --gold: #c59b3c;
+  --dot: #c59b3c;
+  --ok: #c59b3c;
   --hold: #e8b86b;
-  --sold: #9aa3b2;
-  --serif: "Cormorant Garamond", Georgia, serif;
-  --sans: "Manrope", system-ui, sans-serif;
+  --sold: #787571;
+  --serif: "Tw Cen MT", "TwCenMT", "Cinzel", Georgia, serif;
+  --sans: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
-

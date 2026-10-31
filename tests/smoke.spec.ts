@@ -12,7 +12,7 @@ test.describe('Smoke Tests', () => {
     await page.goto('/');
 
     // Check document title
-    await expect(page).toHaveTitle('The Solenne · Brickell Bay Residences');
+    await expect(page).toHaveTitle(/Nitaara Tower|The Solenne/);
 
     // Check header brand
     const brand = page.locator('.brand');
