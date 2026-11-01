@@ -402,38 +402,58 @@ img {
 .panel {
   position: absolute;
   right: 32px;
-  top: 50%;
-  z-index: 15;
-  width: 340px;
-  padding: 28px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  transform: translate(24px, -50%);
+  top: 84px;
+  z-index: 9980;
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 108px);
+  padding: 22px 24px;
+  background: rgba(22, 21, 19, 0.94);
+  border: 1px solid rgba(197, 155, 60, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(197, 155, 60, 0.15);
+  transform: translateX(30px);
   opacity: 0;
   pointer-events: none;
-  backdrop-filter: blur(12px);
-  transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-out);
+  backdrop-filter: blur(16px);
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(197, 155, 60, 0.4) transparent;
+}
+
+.panel::-webkit-scrollbar {
+  width: 5px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: rgba(197, 155, 60, 0.35);
+  border-radius: 4px;
 }
 
 .panel.on {
   opacity: 1;
-  transform: translate(0, -50%);
+  transform: translateX(0);
   pointer-events: auto;
 }
 
 .p-eyebrow {
   font-size: 11px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .p-title {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: 40px;
-  line-height: 1.05;
-  margin: 8px 0 16px;
+  font-size: 26px;
+  line-height: 1.15;
+  margin: 4px 0 12px;
+  color: #f4efe6;
 }
 
 .p-specs {
@@ -441,29 +461,33 @@ img {
   grid-template-columns: repeat(3, 1fr);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
 }
 
 .p-specs div {
-  padding: 12px 0;
+  padding: 10px 8px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  text-align: center;
 }
 
 .p-specs div+div {
-  padding-left: 12px;
   border-left: 1px solid var(--line);
 }
 
 .p-specs strong {
   font-family: var(--serif);
-  font-size: 24px;
-  font-weight: 500;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f4efe6;
 }
 
 .p-specs span {
   font-size: 10px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-dim);
 }
@@ -471,55 +495,74 @@ img {
 .p-price {
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
-  margin: 16px 0 8px;
+  margin: 10px 0 8px;
+  padding: 8px 12px;
+  background: rgba(197, 155, 60, 0.08);
+  border: 1px solid rgba(197, 155, 60, 0.2);
+  border-radius: 4px;
 }
 
 .p-price span {
   font-size: 11px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: var(--gold);
+  font-weight: 600;
 }
 
 .p-price strong {
   font-family: var(--serif);
-  font-size: 30px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .p-copy {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(244, 239, 230, 0.75);
+  margin: 8px 0 12px;
 }
 
 .p-rooms {
   display: flex;
   flex-direction: column;
-  margin: 16px 0 20px;
+  margin: 10px 0 16px;
+  gap: 2px;
 }
 
 .p-rooms button {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 12px;
   text-align: left;
   color: var(--ink);
-  transition: color 0.2s ease;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.p-rooms button:hover {
+  background: rgba(197, 155, 60, 0.1);
+  border-color: rgba(197, 155, 60, 0.25);
+  color: #ffffff;
 }
 
 .p-rooms button:last-child {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .p-rooms button::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--dot);
   flex: none;
@@ -534,26 +577,29 @@ img {
 
 .p-rooms button:hover::after {
   transform: translateX(4px);
-  color: var(--ink);
+  color: var(--gold);
 }
 
 .p-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .btn {
   flex: 1;
-  min-height: 44px;
-  padding: 12px 14px;
+  min-height: 40px;
+  padding: 10px 12px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
 }
 
 .btn.solid {
@@ -884,8 +930,12 @@ input, textarea, select {
     top: auto;
     bottom: 16px;
     width: auto;
+    max-width: none;
+    max-height: 80vh;
     padding: 18px;
+    border-radius: 12px;
     transform: translateY(24px);
+    z-index: 9980;
   }
 
   .panel.on {
@@ -893,7 +943,7 @@ input, textarea, select {
   }
 
   .p-title {
-    font-size: 30px;
+    font-size: 22px;
     margin: 4px 0 10px;
   }
 

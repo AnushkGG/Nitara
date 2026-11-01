@@ -60,9 +60,9 @@ export const UnitPanel: React.FC<UnitPanelProps> = ({
         style={{
           display: 'flex',
           gap: '6px',
-          margin: '10px 0 14px',
+          margin: '8px 0 12px',
           overflowX: 'auto',
-          paddingBottom: '4px',
+          paddingBottom: '2px',
         }}
       >
         {floorUnits.map((fu, idx) => {
@@ -74,13 +74,13 @@ export const UnitPanel: React.FC<UnitPanelProps> = ({
               onClick={() => handleFlatChange(idx)}
               style={{
                 flex: 1,
-                padding: '6px 8px',
+                padding: '7px 8px',
                 fontSize: '11px',
                 fontWeight: 600,
-                letterSpacing: '0.04em',
-                background: isSelected ? 'rgba(197, 155, 60, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                letterSpacing: '0.02em',
+                background: isSelected ? 'rgba(197, 155, 60, 0.22)' : 'rgba(255, 255, 255, 0.04)',
                 border: isSelected ? '1px solid #c59b3c' : '1px solid rgba(255, 255, 255, 0.1)',
-                color: isSelected ? '#c59b3c' : 'rgba(244, 239, 230, 0.7)',
+                color: isSelected ? '#c59b3c' : 'rgba(244, 239, 230, 0.75)',
                 borderRadius: '4px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
@@ -174,20 +174,27 @@ export const UnitPanel: React.FC<UnitPanelProps> = ({
           onClick={onSiteVisit}
           style={{
             width: '100%',
-            marginTop: '8px',
-            padding: '8px',
-            fontSize: '10px',
-            letterSpacing: '0.12em',
+            marginTop: '10px',
+            minHeight: '38px',
+            padding: '10px 14px',
+            fontSize: '11px',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            fontWeight: 600,
-            color: '#c59b3c',
-            border: '1px solid rgba(197, 155, 60, 0.3)',
-            borderRadius: '2px',
-            background: 'rgba(197, 155, 60, 0.05)',
+            fontWeight: 700,
+            color: '#22211f',
+            border: 'none',
+            borderRadius: '4px',
+            background: 'linear-gradient(135deg, #d8b15a, #b0872e)',
             cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(197, 155, 60, 0.25)',
+            transition: 'filter 0.2s ease, transform 0.15s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
           }}
         >
-          📍 Request for Site Visit
+          <span>📍 Request for Site Visit</span>
         </button>
       )}
     </aside>
