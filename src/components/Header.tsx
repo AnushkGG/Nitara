@@ -27,10 +27,10 @@ export const Header: React.FC<HeaderProps> = ({ onInquire, onNavigate }) => {
         <span
           role="button"
           tabIndex={0}
-          onClick={() => onNavigate?.('amenities')}
-          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('amenities')}
+          onClick={() => onNavigate?.('configurations')}
+          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('configurations')}
         >
-          Amenities
+          Configurations
         </span>
         <span
           role="button"
@@ -39,6 +39,22 @@ export const Header: React.FC<HeaderProps> = ({ onInquire, onNavigate }) => {
           onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('floorplans')}
         >
           Floor Plans
+        </span>
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={() => onNavigate?.('amenities')}
+          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('amenities')}
+        >
+          Amenities
+        </span>
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={() => onNavigate?.('location')}
+          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('location')}
+        >
+          Location
         </span>
         <a
           className="cta"

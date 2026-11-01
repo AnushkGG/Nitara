@@ -750,8 +750,22 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
       } else {
         setToastMsg('Level 26 Rooftop Sky Retreat & Infinity Pool — 7 Luxury Lifestyle Amenities.');
       }
-    } else if (section === 'overview' || section === 'configurations' || section === 'residences') {
-      const el = document.getElementById('highlights') || document.getElementById('configurations');
+    } else if (section === 'configurations') {
+      const el = document.getElementById('configurations');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        setToastMsg('3 BHK (1,245–1,247 sq ft) & 4 BHK (1,592 sq ft) configurations.');
+      }
+    } else if (section === 'location' || section === 'features') {
+      const el = document.getElementById('location');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        setToastMsg('Sector 24, Bhakti Shakti Chowk, Nigdi Pradhikaran, Pune 411044.');
+      }
+    } else if (section === 'overview' || section === 'residences') {
+      const el = document.getElementById('highlights') || document.getElementById('about');
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
       } else {

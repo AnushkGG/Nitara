@@ -106,6 +106,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
         {/* Close Button */}
         <button
           type="button"
+          className="enquiry-modal-close"
           onClick={onClose}
           aria-label="Close modal"
           style={{
@@ -275,6 +276,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label
+                  htmlFor="enq-name"
                   style={{
                     display: 'block',
                     fontSize: '11px',
@@ -287,6 +289,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
                   Your Name *
                 </label>
                 <input
+                  id="enq-name"
                   type="text"
                   required
                   placeholder="e.g. Rahul Patil"
@@ -306,6 +309,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
 
               <div>
                 <label
+                  htmlFor="enq-phone"
                   style={{
                     display: 'block',
                     fontSize: '11px',
@@ -318,6 +322,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
                   Phone Number (+91) *
                 </label>
                 <input
+                  id="enq-phone"
                   type="tel"
                   required
                   placeholder="+91 98765 43210"
@@ -339,6 +344,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: mode === 'sitevisit' ? '1fr 1fr' : '1fr', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label
+                  htmlFor="enq-email"
                   style={{
                     display: 'block',
                     fontSize: '11px',
@@ -351,6 +357,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
                   Email Address
                 </label>
                 <input
+                  id="enq-email"
                   type="email"
                   placeholder="name@domain.com"
                   value={email}

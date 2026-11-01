@@ -165,6 +165,8 @@ export const images = {
   ],
   towerHero: `${A}/banner/desk1.jpg`,
   towerMobileHero: `${A}/banner/mob1.jpg`,
+  towerPortraitHq: `${A}/tower_portrait_hq.jpg`,
+  towerLandscapeSunset: `${A}/tower_landscape_sunset.jpg`,
   about: `${A}/about.jpg`,
   locationMap: `${A}/map.jpg`,
   masterPlan: `${A}/floorplan/master-plan.jpg`,

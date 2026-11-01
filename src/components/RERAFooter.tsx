@@ -62,6 +62,25 @@ export const RERAFooter: React.FC = () => {
                 +91 9890288871
               </a>
             </p>
+            <div style={{ marginTop: '8px' }}>
+              <a
+                href="https://wa.me/918600612808?text=Hello%20Nitaara%20Tower%20Sales%20Team%2C%20I%20would%20like%20to%20enquire%20about%20residences."
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#25D366',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                <span>💬 Chat on WhatsApp: +91 8600612808</span>
+              </a>
+            </div>
             <p
               style={{
                 fontSize: '12px',

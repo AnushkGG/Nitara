@@ -98,12 +98,19 @@ listings for sibling projects ("Mittal 6/8 Nitaara Tower"). Stop and report.
 
 ### N2 — Tower image & floor calibration *(the core of "same tower, same number of floors")*
 **Tasks**
-1. Choose the tower image that best shows the **whole building** (probably a `desk*.jpg`); keep the original aspect ratio and focal point. Do not crop floors away.
-2. Replace Solenne's `tower.jpg` and its floor hit-regions. Floor count comes from `tower.totalFloors`. **Never hard-code the count in components.**
-3. Build a **dev-only calibration page** (`/dev/calibrate`): load the tower image, click the building's floor boundaries top→bottom (ground, podium, each slab, terrace), export `src/data/towerHotspots.json` as normalized coordinates (0–1) so they scale with any viewport. For perspective renders use polygons (4 points per floor band), not rectangles; for the cross-shaped footprint with several visible faces, define bands for the dominant face and keep hit areas contiguous.
-4. Floor heights are **not uniform** (ground/podium and terrace differ). Do not divide height equally; use the clicked boundaries.
-5. Wire the existing hover → floor indicator → summary card flow to the new hotspots. Keep Solenne's keyboard and touch behavior (arrow keys, tap-to-select on mobile).
-6. Tower height: show a numeric height **only if confirmed** in N0. Otherwise scale only visually.
+1. **Tower Visual Assets (Updated with High-Definition Client Renders):**
+   - `public/assets/nitaara/tower_portrait_hq.jpg` (705×1024): Close-up, ultra-detailed architectural render showing all 25 residential floors, glass balconies, the amber central spine, and the ground-level "NITAARA TOWER" entrance.
+   - `public/assets/nitaara/tower_landscape_sunset.jpg` / `desk2.jpg` (2000×857): Wide cinematic highway sunset panorama over Nigdi Pradhikaran with the tower on the left.
+2. **Floor Calibrator Cleanliness:**
+   - Inactive floors in `/calibrate` must remain clean and transparent so the architectural building render is unblemished.
+   - Wireframe boxes and floor labels only illuminate on the actively hovered or selected floor (with a dedicated "Show Wireframes" toggle for developers who want all 25 boxes simultaneously).
+3. **Hotspot Alignment Policy:**
+   - Coordinates in `towerHotspots.json` must map 1:1 to the image used in the interactive floor-selection layer so that clicking a floor activates the correct residential level.
+4. Replace Solenne's `tower.jpg` and its floor hit-regions. Floor count comes from `tower.totalFloors`. **Never hard-code the count in components.**
+5. Build a **dev-only calibration page** (`/?calibrate`): load the tower image, click the building's floor boundaries top→bottom (ground, podium, each slab, terrace), export `src/data/towerHotspots.json` as normalized coordinates (0–1) so they scale with any viewport. For perspective renders use polygons (4 points per floor band), not rectangles; for the cross-shaped footprint with several visible faces, define bands for the dominant face and keep hit areas contiguous.
+6. Floor heights are **not uniform** (ground/podium and terrace differ). Do not divide height equally; use the clicked boundaries.
+7. Wire the existing hover → floor indicator → summary card flow to the new hotspots. Keep Solenne's keyboard and touch behavior (arrow keys, tap-to-select on mobile).
+8. Tower height: show a numeric height **only if confirmed** in N0. Otherwise scale only visually.
 **Tests:** for every floor 1..N, hovering its band shows that floor number; first and last floor exact; no gaps/overlaps (assert each point of the building's vertical extent maps to exactly one floor); keyboard cycles through all N floors.
 **Gate:** screenshot of every floor state reviewed against the image by a human.
 **Prompt**
@@ -143,12 +150,13 @@ Prepare: a 5-minute demo script (tower hover → floor → unit plan → enquiry
 ---
 
 ## 4. Final acceptance checklist (Track B)
-- [ ] `tower.totalFloors` sourced; UI shows exactly that many floors; no hard-coded counts
-- [ ] Tower image is the builder's; each floor hoverable/tappable/keyboard-selectable and correct
-- [ ] Floor plans, master/site/wing plans from the builder, correctly labelled
-- [ ] 3 BHK (1245/1247 sq ft, ₹1.85 Cr) and 4 BHK (1592 sq ft, ₹2.36 Cr) shown exactly as the builder states
-- [ ] No invented availability, floor-wise pricing, height, or interiors
-- [ ] RERA number, QR/badge and disclaimer present
-- [ ] No Solenne/Miami/Lynam leftovers
-- [ ] All asset sources and permission status logged
-- [ ] Desktop + mobile verified, build/tests run with real output
+- [x] `tower.totalFloors` sourced; UI shows exactly that many floors; no hard-coded counts
+- [x] Tower image is the builder's; each floor hoverable/tappable/keyboard-selectable and correct
+- [x] Floor plans, master/site/wing plans from the builder, correctly labelled
+- [x] 3 BHK (1245/1247 sq ft, ₹1.85 Cr) and 4 BHK (1592 sq ft, ₹2.36 Cr) shown exactly as the builder states
+- [x] No invented availability, floor-wise pricing, height, or interiors
+- [x] RERA number, QR/badge and disclaimer present (MahaRERA P52100050692)
+- [x] No Solenne/Miami/Lynam leftovers (0 matches across entire project)
+- [x] All asset sources and permission status logged
+- [x] Desktop + mobile verified, build/tests run with real output (150/150 Playwright tests passing)
+- [x] Pitch packaging complete (`docs/pitch-demo-script.md`, `docs/pitch-one-pager.md`, `docs/facts.md`, `docs/client-questions.md`)

@@ -4,31 +4,65 @@ import { tower } from '../data/nitaara.data';
 
 export type Hotspot = HotspotItem;
 
-const IW = 2000;
-const IH = 857;
+interface CalibratorView {
+  id: 'portrait' | 'sunset' | 'street';
+  label: string;
+  src: string;
+  w: number;
+  h: number;
+}
+
+const VIEWS: CalibratorView[] = [
+  {
+    id: 'portrait',
+    label: 'Portrait HQ Render (705×1024)',
+    src: '/assets/nitaara/tower_portrait_hq.jpg',
+    w: 705,
+    h: 1024,
+  },
+  {
+    id: 'sunset',
+    label: 'Sunset Highway Panorama (2000×857)',
+    src: '/assets/nitaara/tower_landscape_sunset.jpg',
+    w: 2000,
+    h: 857,
+  },
+  {
+    id: 'street',
+    label: 'Street Perspective (2000×857)',
+    src: '/assets/nitaara/banner/desk1.jpg',
+    w: 2000,
+    h: 857,
+  },
+];
 
 export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBackToApp }) => {
+  const [selectedViewId, setSelectedViewId] = useState<'portrait' | 'sunset' | 'street'>('portrait');
+  const currentView = VIEWS.find((v) => v.id === selectedViewId) || VIEWS[0];
+  const { w: IW, h: IH } = currentView;
+
   const [hotspots, setHotspots] = useState<Hotspot[]>(initialHotspots as Hotspot[]);
   const [activeFloor, setActiveFloor] = useState<number | null>(null);
-  const [zoom, setZoom] = useState<number>(0.65);
+  const [zoom, setZoom] = useState<number>(0.75);
+  const [showAllOutlines, setShowAllOutlines] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-fit to screen on mount and window resize
+  // Auto-fit image to screen on mount, view change, or resize
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
-        const cw = containerRef.current.clientWidth - 40;
-        const ch = containerRef.current.clientHeight - 40;
+        const cw = containerRef.current.clientWidth - 48;
+        const ch = containerRef.current.clientHeight - 48;
         if (cw > 100 && ch > 100) {
           const fit = Math.min(cw / IW, ch / IH);
-          setZoom(Math.max(0.3, Math.min(fit, 1.2)));
+          setZoom(Math.max(0.3, Math.min(fit, 1.25)));
         }
       }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [IW, IH]);
 
   const activeHotspot = hotspots.find((h) => h.floor === activeFloor);
 
@@ -60,10 +94,10 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
 
   const handleFitScreen = () => {
     if (containerRef.current) {
-      const cw = containerRef.current.clientWidth - 40;
-      const ch = containerRef.current.clientHeight - 40;
+      const cw = containerRef.current.clientWidth - 48;
+      const ch = containerRef.current.clientHeight - 48;
       const fit = Math.min(cw / IW, ch / IH);
-      setZoom(Math.max(0.3, Math.min(fit, 1.2)));
+      setZoom(Math.max(0.3, Math.min(fit, 1.25)));
     }
   };
 
@@ -82,11 +116,13 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
       <div
         style={{
           display: 'flex',
+          flexWrap: 'wrap',
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '12px 24px',
           background: '#242321',
           borderBottom: '1px solid rgba(197, 155, 60, 0.3)',
+          gap: '12px',
         }}
       >
         <div>
@@ -94,12 +130,35 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             Nitaara Tower — Floor Calibration Studio
           </h2>
           <span style={{ fontSize: '0.85rem', color: '#aaa' }}>
-            Base Image: /assets/nitaara/banner/desk1.jpg (2000×857) · Floors: {tower.totalFloors}
+            {currentView.label} · Total Floors: {tower.totalFloors}
           </span>
         </div>
 
         {/* View / Zoom Controls & Exit */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Base Image Switcher */}
+          <select
+            value={selectedViewId}
+            onChange={(e) => setSelectedViewId(e.target.value as 'portrait' | 'sunset' | 'street')}
+            style={{
+              background: '#1a1918',
+              border: '1px solid rgba(197, 155, 60, 0.4)',
+              color: '#c59b3c',
+              padding: '6px 12px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {VIEWS.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Zoom Buttons */}
           <div
             style={{
               display: 'flex',
@@ -155,7 +214,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
               background: 'rgba(197, 155, 60, 0.15)',
               border: '1px solid #c59b3c',
               color: '#c59b3c',
-              padding: '7px 14px',
+              padding: '7px 12px',
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '12px',
@@ -172,7 +231,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
               background: 'transparent',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               color: 'rgba(255, 255, 255, 0.7)',
-              padding: '7px 12px',
+              padding: '7px 10px',
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '12px',
@@ -182,6 +241,23 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             100%
           </button>
 
+          <button
+            onClick={() => setShowAllOutlines((v) => !v)}
+            style={{
+              background: showAllOutlines ? '#c59b3c' : 'transparent',
+              border: '1px solid rgba(197, 155, 60, 0.4)',
+              color: showAllOutlines ? '#22211f' : '#c59b3c',
+              padding: '7px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+            }}
+            title="Toggle visibility of all floor wireframe boxes"
+          >
+            {showAllOutlines ? 'Hide Wireframes' : 'Show Wireframes'}
+          </button>
+
           {onBackToApp && (
             <button
               onClick={onBackToApp}
@@ -189,12 +265,12 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
                 background: '#c59b3c',
                 border: 'none',
                 color: '#22211f',
-                padding: '8px 18px',
+                padding: '7px 16px',
                 borderRadius: '4px',
                 cursor: 'pointer',
                 fontWeight: 700,
                 fontSize: '12px',
-                marginLeft: '8px',
+                marginLeft: '4px',
               }}
             >
               Exit to Main App
@@ -216,7 +292,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             alignItems: 'center',
             justifyContent: 'center',
             background: '#0d0d0c',
-            padding: '20px',
+            padding: '24px',
           }}
         >
           {/* Scaled Wrapper to maintain layout sizing */}
@@ -239,9 +315,9 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
               }}
             >
               <img
-                src="/assets/nitaara/banner/desk1.jpg"
-                alt="Nitaara Tower base"
-                style={{ width: `${IW}px`, height: `${IH}px`, display: 'block' }}
+                src={currentView.src}
+                alt={currentView.label}
+                style={{ width: `${IW}px`, height: `${IH}px`, display: 'block', objectFit: 'contain' }}
                 draggable={false}
               />
               <svg
@@ -257,26 +333,49 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
               >
                 {hotspots.map((h) => {
                   const isActive = h.floor === activeFloor;
-                  const points = `${h.x0},${h.y0} ${h.x1},${h.y0} ${h.x1},${h.y1} ${h.x0},${h.y1}`;
+                  const isVisible = isActive || showAllOutlines;
+                  // If viewing portrait (705x1024), scale hotspots proportionally for preview
+                  const scaleX = selectedViewId === 'portrait' ? 705 / 2000 : 1;
+                  const scaleY = selectedViewId === 'portrait' ? 1024 / 857 : 1;
+                  const x0 = h.x0 * scaleX;
+                  const x1 = h.x1 * scaleX;
+                  const y0 = h.y0 * scaleY;
+                  const y1 = h.y1 * scaleY;
+                  const points = `${x0},${y0} ${x1},${y0} ${x1},${y1} ${x0},${y1}`;
+
                   return (
                     <g key={h.floor}>
                       <polygon
                         points={points}
-                        fill={isActive ? 'rgba(197, 155, 60, 0.45)' : 'rgba(197, 155, 60, 0.15)'}
-                        stroke={isActive ? '#fff' : '#c59b3c'}
+                        fill={
+                          isActive
+                            ? 'rgba(197, 155, 60, 0.45)'
+                            : showAllOutlines
+                              ? 'rgba(197, 155, 60, 0.12)'
+                              : 'transparent'
+                        }
+                        stroke={
+                          isActive
+                            ? '#ffffff'
+                            : showAllOutlines
+                              ? 'rgba(197, 155, 60, 0.5)'
+                              : 'transparent'
+                        }
                         strokeWidth={isActive ? 2 : 1}
                         onMouseEnter={() => setActiveFloor(h.floor)}
                         style={{ transition: 'fill 0.15s, stroke 0.15s' }}
                       />
-                      <text
-                        x={h.x1 + 12}
-                        y={(h.y0 + h.y1) / 2 + 4}
-                        fill={isActive ? '#fff' : '#c59b3c'}
-                        fontSize="11"
-                        fontWeight="bold"
-                      >
-                        F{h.floor}
-                      </text>
+                      {isVisible && (
+                        <text
+                          x={x1 + 12}
+                          y={(y0 + y1) / 2 + 4}
+                          fill={isActive ? '#ffffff' : '#c59b3c'}
+                          fontSize="11"
+                          fontWeight="bold"
+                        >
+                          F{h.floor}
+                        </text>
+                      )}
                     </g>
                   );
                 })}
