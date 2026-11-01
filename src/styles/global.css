@@ -731,11 +731,15 @@ img {
   margin: -11px 0 0 -11px;
   border-radius: 50%;
   border: 2px solid #fff;
-  z-index: 50;
+  z-index: 100000;
   pointer-events: none;
   mix-blend-mode: difference;
   transition: width 0.2s var(--ease-out), height 0.2s var(--ease-out), margin 0.2s var(--ease-out), background 0.2s;
   display: none;
+}
+
+input, textarea, select {
+  cursor: text !important;
 }
 
 #cursor.big {
@@ -946,7 +950,7 @@ img {
   }
 
   .floating-nav-pills {
-    bottom: 58px !important;
+    bottom: 24px !important;
     left: 12px !important;
     flex-direction: column !important;
     align-items: flex-start !important;

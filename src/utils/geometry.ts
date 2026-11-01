@@ -20,7 +20,7 @@ export const frameRect = (): Rect => {
 export const towerRest = (): Transform => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const towerH = 680; // Distance from crown (53) to ground (748)
+  const towerH = 695; // Distance from crown (~53) to ground (~748)
   const portraitMode = isPortrait();
 
   let s: number;
@@ -30,14 +30,16 @@ export const towerRest = (): Transform => {
     s = Math.min(scaleByW, scaleByH);
   } else {
     const scaleByH = (vh * 0.88) / towerH;
-    const scaleByW = (vw * 0.9) / IW;
+    const scaleByW = (vw * 0.88) / (TOWER_X1 - TOWER_X0 + 120);
     s = Math.min(scaleByH, scaleByW);
   }
 
   const cx = (TOWER_X0 + TOWER_X1) / 2;
-  const cy = (106 + 748) / 2;
   const tx = vw / 2 - cx * s;
-  const ty = portraitMode ? vh / 2 - cy * s + 10 : vh / 2 - cy * s + 24;
+  // Position so building ground is anchored naturally near bottom of hero
+  const groundY = 748;
+  const bottomMargin = portraitMode ? 40 : 28;
+  const ty = vh - groundY * s - bottomMargin;
 
   return { s, tx, ty };
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import initialHotspots, { HotspotItem } from '../data/towerHotspots';
 import { tower } from '../data/nitaara.data';
 
@@ -10,8 +10,25 @@ const IH = 857;
 export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBackToApp }) => {
   const [hotspots, setHotspots] = useState<Hotspot[]>(initialHotspots as Hotspot[]);
   const [activeFloor, setActiveFloor] = useState<number | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [zoom, setZoom] = useState<number>(0.65);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-fit to screen on mount and window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const cw = containerRef.current.clientWidth - 40;
+        const ch = containerRef.current.clientHeight - 40;
+        if (cw > 100 && ch > 100) {
+          const fit = Math.min(cw / IW, ch / IH);
+          setZoom(Math.max(0.3, Math.min(fit, 1.2)));
+        }
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const activeHotspot = hotspots.find((h) => h.floor === activeFloor);
 
@@ -41,10 +58,13 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
     );
   };
 
-  const copyJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(hotspots, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleFitScreen = () => {
+    if (containerRef.current) {
+      const cw = containerRef.current.clientWidth - 40;
+      const ch = containerRef.current.clientHeight - 40;
+      const fit = Math.min(cw / IW, ch / IH);
+      setZoom(Math.max(0.3, Math.min(fit, 1.2)));
+    }
   };
 
   return (
@@ -77,31 +97,104 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             Base Image: /assets/nitaara/banner/desk1.jpg (2000×857) · Floors: {tower.totalFloors}
           </span>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            onClick={copyJson}
+
+        {/* View / Zoom Controls & Exit */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
             style={{
-              background: '#c59b3c',
-              color: '#fff',
-              border: 'none',
-              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              background: '#1a1918',
+              border: '1px solid rgba(197, 155, 60, 0.3)',
               borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
+              overflow: 'hidden',
             }}
           >
-            {copied ? 'Copied JSON!' : 'Copy Hotspots JSON'}
+            <button
+              onClick={() => setZoom((z) => Math.max(0.3, z - 0.1))}
+              style={{
+                padding: '6px 12px',
+                color: '#c59b3c',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '14px',
+              }}
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <span
+              style={{
+                padding: '6px 10px',
+                fontSize: '12px',
+                color: '#fff',
+                minWidth: '50px',
+                textAlign: 'center',
+              }}
+            >
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              onClick={() => setZoom((z) => Math.min(1.5, z + 0.1))}
+              style={{
+                padding: '6px 12px',
+                color: '#c59b3c',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '14px',
+              }}
+              title="Zoom In"
+            >
+              +
+            </button>
+          </div>
+
+          <button
+            onClick={handleFitScreen}
+            style={{
+              background: 'rgba(197, 155, 60, 0.15)',
+              border: '1px solid #c59b3c',
+              color: '#c59b3c',
+              padding: '7px 14px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+            }}
+            title="Auto-fit image to screen"
+          >
+            Fit to Screen
           </button>
+
+          <button
+            onClick={() => setZoom(1.0)}
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: 'rgba(255, 255, 255, 0.7)',
+              padding: '7px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+            title="Actual Size (100%)"
+          >
+            100%
+          </button>
+
           {onBackToApp && (
             <button
               onClick={onBackToApp}
               style={{
-                background: 'transparent',
-                border: '1px solid #c59b3c',
-                color: '#c59b3c',
-                padding: '8px 16px',
+                background: '#c59b3c',
+                border: 'none',
+                color: '#22211f',
+                padding: '8px 18px',
                 borderRadius: '4px',
                 cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '12px',
+                marginLeft: '8px',
               }}
             >
               Exit to Main App
@@ -123,52 +216,72 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             alignItems: 'center',
             justifyContent: 'center',
             background: '#0d0d0c',
+            padding: '20px',
           }}
         >
-          <div style={{ position: 'relative', width: `${IW}px`, height: `${IH}px` }}>
-            <img
-              src="/assets/nitaara/banner/desk1.jpg"
-              alt="Nitaara Tower base"
-              style={{ width: `${IW}px`, height: `${IH}px`, display: 'block' }}
-              draggable={false}
-            />
-            <svg
+          {/* Scaled Wrapper to maintain layout sizing */}
+          <div
+            style={{
+              width: `${IW * zoom}px`,
+              height: `${IH * zoom}px`,
+              position: 'relative',
+              flexShrink: 0,
+            }}
+          >
+            <div
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
                 width: `${IW}px`,
                 height: `${IH}px`,
-                cursor: 'crosshair',
+                transform: `scale(${zoom})`,
+                transformOrigin: 'top left',
+                position: 'relative',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
               }}
-              viewBox={`0 0 ${IW} ${IH}`}
             >
-              {hotspots.map((h) => {
-                const isActive = h.floor === activeFloor;
-                const points = `${h.x0},${h.y0} ${h.x1},${h.y0} ${h.x1},${h.y1} ${h.x0},${h.y1}`;
-                return (
-                  <g key={h.floor}>
-                    <polygon
-                      points={points}
-                      fill={isActive ? 'rgba(197, 155, 60, 0.45)' : 'rgba(197, 155, 60, 0.15)'}
-                      stroke={isActive ? '#fff' : '#c59b3c'}
-                      strokeWidth={isActive ? 2 : 1}
-                      onMouseEnter={() => setActiveFloor(h.floor)}
-                      style={{ transition: 'fill 0.15s, stroke 0.15s' }}
-                    />
-                    <text
-                      x={h.x1 + 12}
-                      y={(h.y0 + h.y1) / 2 + 4}
-                      fill={isActive ? '#fff' : '#c59b3c'}
-                      fontSize="11"
-                      fontWeight="bold"
-                    >
-                      F{h.floor}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
+              <img
+                src="/assets/nitaara/banner/desk1.jpg"
+                alt="Nitaara Tower base"
+                style={{ width: `${IW}px`, height: `${IH}px`, display: 'block' }}
+                draggable={false}
+              />
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: `${IW}px`,
+                  height: `${IH}px`,
+                  cursor: 'crosshair',
+                }}
+                viewBox={`0 0 ${IW} ${IH}`}
+              >
+                {hotspots.map((h) => {
+                  const isActive = h.floor === activeFloor;
+                  const points = `${h.x0},${h.y0} ${h.x1},${h.y0} ${h.x1},${h.y1} ${h.x0},${h.y1}`;
+                  return (
+                    <g key={h.floor}>
+                      <polygon
+                        points={points}
+                        fill={isActive ? 'rgba(197, 155, 60, 0.45)' : 'rgba(197, 155, 60, 0.15)'}
+                        stroke={isActive ? '#fff' : '#c59b3c'}
+                        strokeWidth={isActive ? 2 : 1}
+                        onMouseEnter={() => setActiveFloor(h.floor)}
+                        style={{ transition: 'fill 0.15s, stroke 0.15s' }}
+                      />
+                      <text
+                        x={h.x1 + 12}
+                        y={(h.y0 + h.y1) / 2 + 4}
+                        fill={isActive ? '#fff' : '#c59b3c'}
+                        fontSize="11"
+                        fontWeight="bold"
+                      >
+                        F{h.floor}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
           </div>
         </div>
 

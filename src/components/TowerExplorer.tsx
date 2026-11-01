@@ -1089,8 +1089,8 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
         <div
           className="floating-nav-pills"
           style={{
-            position: 'fixed',
-            bottom: '16px',
+            position: 'absolute',
+            bottom: '24px',
             left: '24px',
             zIndex: 9990,
             display: 'flex',
@@ -1174,11 +1174,8 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
       {view === 'tower' && (
         <div
           className="hero-scroll-cue"
-          role="button"
-          tabIndex={0}
-          style={{ cursor: 'pointer', pointerEvents: 'auto' }}
-          onClick={() => document.getElementById('highlights')?.scrollIntoView({ behavior: 'smooth' })}
-          title="Scroll down to explore"
+          style={{ pointerEvents: 'none' }}
+          aria-hidden="true"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12l7 7 7-7" />
