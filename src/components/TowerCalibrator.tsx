@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import initialHotspots, { HotspotItem } from '../data/towerHotspots';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import initialStreetHotspots, { HotspotItem } from '../data/towerHotspots';
+import initialPortraitHotspots from '../data/towerPortraitHotspots.json';
 import { tower } from '../data/nitaara.data';
 
 export type Hotspot = HotspotItem;
 
 interface CalibratorView {
-  id: 'portrait' | 'sunset' | 'street';
+  id: 'portrait' | 'street' | 'sunset';
   label: string;
   src: string;
   w: number;
@@ -21,30 +22,41 @@ const VIEWS: CalibratorView[] = [
     h: 1024,
   },
   {
-    id: 'sunset',
-    label: 'Sunset Highway Panorama (2000×857)',
-    src: '/assets/nitaara/tower_landscape_sunset.jpg',
-    w: 2000,
-    h: 857,
-  },
-  {
     id: 'street',
     label: 'Street Perspective (2000×857)',
     src: '/assets/nitaara/banner/desk1.jpg',
     w: 2000,
     h: 857,
   },
+  {
+    id: 'sunset',
+    label: 'Sunset Highway Panorama (2000×857)',
+    src: '/assets/nitaara/tower_landscape_sunset.jpg',
+    w: 2000,
+    h: 857,
+  },
 ];
 
 export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBackToApp }) => {
-  const [selectedViewId, setSelectedViewId] = useState<'portrait' | 'sunset' | 'street'>('portrait');
+  const [selectedViewId, setSelectedViewId] = useState<'portrait' | 'street' | 'sunset'>('portrait');
   const currentView = VIEWS.find((v) => v.id === selectedViewId) || VIEWS[0];
   const { w: IW, h: IH } = currentView;
 
-  const [hotspots, setHotspots] = useState<Hotspot[]>(initialHotspots as Hotspot[]);
-  const [activeFloor, setActiveFloor] = useState<number | null>(null);
+  // Dedicated hotspot state for portrait vs street
+  const [portraitHotspots, setPortraitHotspots] = useState<Hotspot[]>(
+    initialPortraitHotspots as Hotspot[]
+  );
+  const [streetHotspots, setStreetHotspots] = useState<Hotspot[]>(
+    initialStreetHotspots as Hotspot[]
+  );
+
+  const hotspots = selectedViewId === 'portrait' ? portraitHotspots : streetHotspots;
+  const setHotspots = selectedViewId === 'portrait' ? setPortraitHotspots : setStreetHotspots;
+
+  const [activeFloor, setActiveFloor] = useState<number | null>(25);
   const [zoom, setZoom] = useState<number>(0.75);
   const [showAllOutlines, setShowAllOutlines] = useState<boolean>(false);
+  const [keepContiguous, setKeepContiguous] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-fit image to screen on mount, view change, or resize
@@ -64,32 +76,148 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
     return () => window.removeEventListener('resize', handleResize);
   }, [IW, IH]);
 
+  // Keyboard navigation for precision tuning
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!activeFloor) return;
+      if (e.key === 'ArrowUp' && !e.shiftKey) {
+        e.preventDefault();
+        setActiveFloor((f) => Math.min(25, (f ?? 24) + 1));
+      } else if (e.key === 'ArrowDown' && !e.shiftKey) {
+        e.preventDefault();
+        setActiveFloor((f) => Math.max(1, (f ?? 2) - 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeFloor]);
+
   const activeHotspot = hotspots.find((h) => h.floor === activeFloor);
 
-  const updateHotspot = (floor: number, field: 'y0' | 'y1' | 'x0' | 'x1', delta: number) => {
-    setHotspots((prev) =>
-      prev.map((h) => {
-        if (h.floor !== floor) return h;
-        const updated = { ...h, [field]: h[field] + delta };
+  const updateHotspot = useCallback(
+    (floor: number, field: 'y0' | 'y1' | 'x0' | 'x1', delta: number) => {
+      setHotspots((prev) => {
+        const updated = prev.map((h) => {
+          if (h.floor !== floor) return h;
+          const nextVal = h[field] + delta;
+          const u = { ...h, [field]: nextVal };
+          const norm = {
+            x0: Number((u.x0 / IW).toFixed(4)),
+            y0: Number((u.y0 / IH).toFixed(4)),
+            x1: Number((u.x1 / IW).toFixed(4)),
+            y1: Number((u.y1 / IH).toFixed(4)),
+          };
+          return {
+            ...u,
+            normalized: norm,
+            polygon: [
+              [norm.x0, norm.y0],
+              [norm.x1, norm.y0],
+              [norm.x1, norm.y1],
+              [norm.x0, norm.y1],
+            ] as [number, number][],
+          };
+        });
+
+        // If contiguous mode is active, sync adjacent floor boundary
+        if (keepContiguous) {
+          if (field === 'y1') {
+            const nextFloor = floor - 1;
+            const changedFloor = updated.find((x) => x.floor === floor);
+            if (changedFloor) {
+              const targetIdx = updated.findIndex((x) => x.floor === nextFloor);
+              if (targetIdx !== -1) {
+                const adj = { ...updated[targetIdx], y0: changedFloor.y1 };
+                adj.normalized = {
+                  ...adj.normalized,
+                  y0: Number((adj.y0 / IH).toFixed(4)),
+                };
+                adj.polygon = [
+                  [adj.normalized.x0, adj.normalized.y0],
+                  [adj.normalized.x1, adj.normalized.y0],
+                  [adj.normalized.x1, adj.normalized.y1],
+                  [adj.normalized.x0, adj.normalized.y1],
+                ];
+                updated[targetIdx] = adj;
+              }
+            }
+          } else if (field === 'y0') {
+            const prevFloor = floor + 1;
+            const changedFloor = updated.find((x) => x.floor === floor);
+            if (changedFloor) {
+              const targetIdx = updated.findIndex((x) => x.floor === prevFloor);
+              if (targetIdx !== -1) {
+                const adj = { ...updated[targetIdx], y1: changedFloor.y0 };
+                adj.normalized = {
+                  ...adj.normalized,
+                  y1: Number((adj.y1 / IH).toFixed(4)),
+                };
+                adj.polygon = [
+                  [adj.normalized.x0, adj.normalized.y0],
+                  [adj.normalized.x1, adj.normalized.y0],
+                  [adj.normalized.x1, adj.normalized.y1],
+                  [adj.normalized.x0, adj.normalized.y1],
+                ];
+                updated[targetIdx] = adj;
+              }
+            }
+          }
+        }
+
+        return updated;
+      });
+    },
+    [IW, IH, keepContiguous, setHotspots]
+  );
+
+  // Auto-distribute slabs mathematically across crown to ground
+  const handleAutoDistributeEvenly = () => {
+    setHotspots((prev) => {
+      const topFloor = prev.find((x) => x.floor === 25);
+      const bottomFloor = prev.find((x) => x.floor === 1);
+      const startY = topFloor ? topFloor.y0 : selectedViewId === 'portrait' ? 92 : 106;
+      const endY = bottomFloor ? bottomFloor.y1 : selectedViewId === 'portrait' ? 885 : 748;
+      const span = endY - startY;
+
+      return prev.map((h, i) => {
+        // i=0 is floor 25, i=24 is floor 1
+        const y0 = Math.round(startY + i * (span / 25));
+        const y1 = Math.round(startY + (i + 1) * (span / 25));
+        const t = i / 24.0;
+
+        let x0 = h.x0;
+        let x1 = h.x1;
+        if (selectedViewId === 'portrait') {
+          x0 = 118;
+          x1 = 548;
+        } else {
+          x0 = Math.round(1092 - 10 * t);
+          x1 = Math.round(1408 + 5 * t);
+        }
+
         const norm = {
-          x0: Number((updated.x0 / IW).toFixed(4)),
-          y0: Number((updated.y0 / IH).toFixed(4)),
-          x1: Number((updated.x1 / IW).toFixed(4)),
-          y1: Number((updated.y1 / IH).toFixed(4)),
+          x0: Number((x0 / IW).toFixed(4)),
+          y0: Number((y0 / IH).toFixed(4)),
+          x1: Number((x1 / IW).toFixed(4)),
+          y1: Number((y1 / IH).toFixed(4)),
         };
-        const poly: [number, number][] = [
-          [norm.x0, norm.y0],
-          [norm.x1, norm.y0],
-          [norm.x1, norm.y1],
-          [norm.x0, norm.y1],
-        ];
+
         return {
-          ...updated,
+          ...h,
+          y0,
+          y1,
+          x0,
+          x1,
           normalized: norm,
-          polygon: poly,
+          polygon: [
+            [norm.x0, norm.y0],
+            [norm.x1, norm.y0],
+            [norm.x1, norm.y1],
+            [norm.x0, norm.y1],
+          ],
         };
-      })
-    );
+      });
+    });
   };
 
   const handleFitScreen = () => {
@@ -139,7 +267,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
           {/* Base Image Switcher */}
           <select
             value={selectedViewId}
-            onChange={(e) => setSelectedViewId(e.target.value as 'portrait' | 'sunset' | 'street')}
+            onChange={(e) => setSelectedViewId(e.target.value as 'portrait' | 'street' | 'sunset')}
             style={{
               background: '#1a1918',
               border: '1px solid rgba(197, 155, 60, 0.4)',
@@ -157,6 +285,24 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
               </option>
             ))}
           </select>
+
+          {/* Auto-Align Grid Button */}
+          <button
+            onClick={handleAutoDistributeEvenly}
+            style={{
+              background: 'linear-gradient(135deg, rgba(197, 155, 60, 0.25) 0%, rgba(197, 155, 60, 0.1) 100%)',
+              border: '1px solid #c59b3c',
+              color: '#f1d58d',
+              padding: '7px 12px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+            }}
+            title="Calculate uniform architectural floor heights between crown and ground"
+          >
+            📐 Distribute Grid Evenly
+          </button>
 
           {/* Zoom Buttons */}
           <div
@@ -177,6 +323,8 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 fontSize: '14px',
+                background: 'transparent',
+                border: 'none',
               }}
               title="Zoom Out"
             >
@@ -201,6 +349,8 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 fontSize: '14px',
+                background: 'transparent',
+                border: 'none',
               }}
               title="Zoom In"
             >
@@ -226,22 +376,6 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
           </button>
 
           <button
-            onClick={() => setZoom(1.0)}
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              color: 'rgba(255, 255, 255, 0.7)',
-              padding: '7px 10px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '12px',
-            }}
-            title="Actual Size (100%)"
-          >
-            100%
-          </button>
-
-          <button
             onClick={() => setShowAllOutlines((v) => !v)}
             style={{
               background: showAllOutlines ? '#c59b3c' : 'transparent',
@@ -255,7 +389,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             }}
             title="Toggle visibility of all floor wireframe boxes"
           >
-            {showAllOutlines ? 'Hide Wireframes' : 'Show Wireframes'}
+            {showAllOutlines ? 'Hide All Lines' : 'Show All Lines'}
           </button>
 
           {onBackToApp && (
@@ -334,14 +468,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
                 {hotspots.map((h) => {
                   const isActive = h.floor === activeFloor;
                   const isVisible = isActive || showAllOutlines;
-                  // If viewing portrait (705x1024), scale hotspots proportionally for preview
-                  const scaleX = selectedViewId === 'portrait' ? 705 / 2000 : 1;
-                  const scaleY = selectedViewId === 'portrait' ? 1024 / 857 : 1;
-                  const x0 = h.x0 * scaleX;
-                  const x1 = h.x1 * scaleX;
-                  const y0 = h.y0 * scaleY;
-                  const y1 = h.y1 * scaleY;
-                  const points = `${x0},${y0} ${x1},${y0} ${x1},${y1} ${x0},${y1}`;
+                  const points = `${h.x0},${h.y0} ${h.x1},${h.y0} ${h.x1},${h.y1} ${h.x0},${h.y1}`;
 
                   return (
                     <g key={h.floor}>
@@ -349,28 +476,29 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
                         points={points}
                         fill={
                           isActive
-                            ? 'rgba(197, 155, 60, 0.45)'
+                            ? 'rgba(197, 155, 60, 0.42)'
                             : showAllOutlines
-                              ? 'rgba(197, 155, 60, 0.12)'
+                              ? 'rgba(197, 155, 60, 0.08)'
                               : 'transparent'
                         }
                         stroke={
                           isActive
                             ? '#ffffff'
                             : showAllOutlines
-                              ? 'rgba(197, 155, 60, 0.5)'
+                              ? 'rgba(197, 155, 60, 0.45)'
                               : 'transparent'
                         }
                         strokeWidth={isActive ? 2 : 1}
                         onMouseEnter={() => setActiveFloor(h.floor)}
-                        style={{ transition: 'fill 0.15s, stroke 0.15s' }}
+                        onClick={() => setActiveFloor(h.floor)}
+                        style={{ transition: 'fill 0.15s, stroke 0.15s', cursor: 'pointer' }}
                       />
                       {isVisible && (
                         <text
-                          x={x1 + 12}
-                          y={(y0 + y1) / 2 + 4}
+                          x={h.x1 + 10}
+                          y={(h.y0 + h.y1) / 2 + 4}
                           fill={isActive ? '#ffffff' : '#c59b3c'}
-                          fontSize="11"
+                          fontSize={selectedViewId === 'portrait' ? '12' : '11'}
                           fontWeight="bold"
                         >
                           F{h.floor}
@@ -387,7 +515,7 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
         {/* Sidebar Controls */}
         <div
           style={{
-            width: '340px',
+            width: '360px',
             background: '#242321',
             borderLeft: '1px solid rgba(197, 155, 60, 0.25)',
             padding: '20px',
@@ -397,7 +525,17 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
             overflowY: 'auto',
           }}
         >
-          <h3 style={{ margin: 0, color: '#c59b3c', fontSize: '1rem' }}>Selected Floor Inspector</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, color: '#c59b3c', fontSize: '1rem' }}>Floor Grid Inspector</h3>
+            <label style={{ fontSize: '0.75rem', color: '#bbb', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={keepContiguous}
+                onChange={(e) => setKeepContiguous(e.target.checked)}
+              />
+              Lock Slabs (No Gaps)
+            </label>
+          </div>
 
           {activeHotspot ? (
             <div
@@ -412,106 +550,89 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#c59b3c' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#c59b3c' }}>
                   Floor {activeHotspot.floor}
                 </span>
-                <span style={{ fontSize: '0.8rem', color: '#aaa' }}>
-                  Height: {activeHotspot.y1 - activeHotspot.y0}px
+                <span style={{ fontSize: '0.85rem', color: '#d0c8b8', background: 'rgba(197,155,60,0.15)', padding: '2px 8px', borderRadius: '3px' }}>
+                  Height: {activeHotspot.y1 - activeHotspot.y0}px · Width: {activeHotspot.x1 - activeHotspot.x0}px
                 </span>
               </div>
 
               <div style={{ fontSize: '0.85rem', color: '#e0deda' }}>
-                Units on Floor: 3 (Flat {activeHotspot.floor}01, {activeHotspot.floor}02, {activeHotspot.floor}03)
+                3 Residences: Flat {activeHotspot.floor}01 (3 BHK), {activeHotspot.floor}02 (3 BHK), {activeHotspot.floor}03 (4 BHK)
               </div>
 
-              {/* Boundary Nudge Controls */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {/* Boundary Precision Nudge Controls */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* Top Slab Y0 */}
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#aaa' }}>Top (Y0): {activeHotspot.y0}px</label>
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'y0', -1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'y0', 1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ▼
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#aaa', marginBottom: '4px' }}>
+                    <span>Top Slab (Y0):</span>
+                    <strong style={{ color: '#fff' }}>{activeHotspot.y0}px</strong>
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y0', -5)} style={nudgeBtnStyle}>-5</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y0', -1)} style={nudgeBtnStyle}>-1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y0', 1)} style={nudgeBtnStyle}>+1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y0', 5)} style={nudgeBtnStyle}>+5</button>
                   </div>
                 </div>
 
+                {/* Bottom Slab Y1 */}
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#aaa' }}>Bottom (Y1): {activeHotspot.y1}px</label>
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'y1', -1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'y1', 1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ▼
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#aaa', marginBottom: '4px' }}>
+                    <span>Bottom Slab (Y1):</span>
+                    <strong style={{ color: '#fff' }}>{activeHotspot.y1}px</strong>
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y1', -5)} style={nudgeBtnStyle}>-5</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y1', -1)} style={nudgeBtnStyle}>-1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y1', 1)} style={nudgeBtnStyle}>+1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'y1', 5)} style={nudgeBtnStyle}>+5</button>
                   </div>
                 </div>
 
+                {/* Left Wall X0 */}
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#aaa' }}>Left (X0): {activeHotspot.x0}px</label>
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'x0', -1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ◄
-                    </button>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'x0', 1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ►
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#aaa', marginBottom: '4px' }}>
+                    <span>Left Wall (X0):</span>
+                    <strong style={{ color: '#fff' }}>{activeHotspot.x0}px</strong>
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x0', -5)} style={nudgeBtnStyle}>-5</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x0', -1)} style={nudgeBtnStyle}>-1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x0', 1)} style={nudgeBtnStyle}>+1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x0', 5)} style={nudgeBtnStyle}>+5</button>
                   </div>
                 </div>
 
+                {/* Right Wall X1 */}
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#aaa' }}>Right (X1): {activeHotspot.x1}px</label>
-                  <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'x1', -1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ◄
-                    </button>
-                    <button
-                      onClick={() => updateHotspot(activeHotspot.floor, 'x1', 1)}
-                      style={{ flex: 1, padding: '4px' }}
-                    >
-                      ►
-                    </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#aaa', marginBottom: '4px' }}>
+                    <span>Right Wall (X1):</span>
+                    <strong style={{ color: '#fff' }}>{activeHotspot.x1}px</strong>
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x1', -5)} style={nudgeBtnStyle}>-5</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x1', -1)} style={nudgeBtnStyle}>-1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x1', 1)} style={nudgeBtnStyle}>+1</button>
+                    <button onClick={() => updateHotspot(activeHotspot.floor, 'x1', 5)} style={nudgeBtnStyle}>+5</button>
                   </div>
                 </div>
               </div>
 
               {/* Normalized Data Preview */}
-              <div style={{ fontSize: '0.75rem', color: '#888', background: '#111', padding: '8px', borderRadius: '4px' }}>
-                Normalized: [{activeHotspot.normalized.x0}, {activeHotspot.normalized.y0}, {activeHotspot.normalized.x1},{' '}
-                {activeHotspot.normalized.y1}]
+              <div style={{ fontSize: '0.75rem', color: '#888', background: '#111', padding: '8px', borderRadius: '4px', wordBreak: 'break-all' }}>
+                Normalized: [{activeHotspot.normalized.x0}, {activeHotspot.normalized.y0}, {activeHotspot.normalized.x1}, {activeHotspot.normalized.y1}]
               </div>
             </div>
           ) : (
-            <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Hover over any floor slab on the image to inspect.</p>
+            <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Select or hover over any floor slab on the image to inspect.</p>
           )}
 
-          {/* Quick Jump List */}
+          {/* Quick Jump Floor Grid */}
           <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-            <span style={{ fontSize: '0.8rem', color: '#888' }}>Quick Jump to Floor:</span>
+            <span style={{ fontSize: '0.8rem', color: '#888' }}>Select Floor:</span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', marginTop: '8px' }}>
               {hotspots.map((h) => (
                 <button
@@ -520,14 +641,15 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
                   style={{
                     padding: '6px 0',
                     background: h.floor === activeFloor ? '#c59b3c' : '#333',
-                    color: '#fff',
+                    color: h.floor === activeFloor ? '#1a1918' : '#fff',
+                    fontWeight: h.floor === activeFloor ? 700 : 400,
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
                     fontSize: '0.8rem',
                   }}
                 >
-                  {h.floor}
+                  F{h.floor}
                 </button>
               ))}
             </div>
@@ -537,3 +659,17 @@ export const TowerCalibrator: React.FC<{ onBackToApp?: () => void }> = ({ onBack
     </div>
   );
 };
+
+const nudgeBtnStyle: React.CSSProperties = {
+  flex: 1,
+  padding: '6px 4px',
+  background: '#2b2a27',
+  color: '#c59b3c',
+  border: '1px solid rgba(197, 155, 60, 0.3)',
+  borderRadius: '3px',
+  cursor: 'pointer',
+  fontSize: '11px',
+  fontWeight: 600,
+};
+
+export default TowerCalibrator;
