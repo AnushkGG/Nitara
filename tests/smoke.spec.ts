@@ -30,8 +30,8 @@ test.describe('Smoke Tests', () => {
     const towerImg = page.locator('#towerImg');
     await expect(towerImg).toBeVisible();
 
-    const bands = page.locator('#bands rect.band');
-    await expect(bands).toHaveCount(30);
+    const bands = page.locator('#bands .band');
+    await expect(bands).toHaveCount(25);
 
     // Check disclaimer
     const disclaimer = page.locator('.disclaimer');

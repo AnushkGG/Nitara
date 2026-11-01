@@ -10,6 +10,25 @@ export interface Room {
   x: number;
   y: number;
   img: string;
+  dims?: string;
+  unitKey?: string;
+}
+
+export interface FloorUnitDetail {
+  unitNo: string;
+  flatSuffix: '01' | '02' | '03';
+  typeId: '3bhk-type-01' | '3bhk-type-02' | '4bhk';
+  label: string;
+  config: '3 BHK' | '4 BHK';
+  reraCarpetSqFt: number;
+  balconySqFt: number;
+  totalSqFt: number;
+  formedTerraceSqFt?: number;
+  priceLabel: string;
+  priceNote: string;
+  floorPlanSrc: string;
+  availability: 'enquire';
+  rooms: { name: string; dims: string }[];
 }
 
 export interface Unit {
@@ -30,6 +49,10 @@ export interface Floor {
   n: number;
   y0: number;
   y1: number;
+  x0?: number;
+  x1?: number;
+  polygon?: [number, number][];
+  label?: string;
   unit: UnitKey;
 }
 

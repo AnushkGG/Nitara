@@ -8,6 +8,7 @@ import {
   FLOORS,
   UNITS,
   CLIPS,
+  getFloorUnits,
 } from '../data/towerData';
 import {
   isPortrait,
@@ -27,16 +28,36 @@ import { UnitPanel } from './UnitPanel';
 import { RoomBar } from './RoomBar';
 import { Toast } from './Toast';
 import { Cursor } from './Cursor';
+import { EnquiryModal, EnquiryPrefill } from './EnquiryModal';
+import { FloorPlansModal, PlanTab } from './FloorPlansModal';
 
-export const TowerExplorer: React.FC = () => {
+interface TowerExplorerProps {
+  onGlobalEnquire?: () => void;
+}
+
+export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _onGlobalEnquire }) => {
   const [view, setView] = useState<ViewMode>('tower');
   const [hoverFloor, setHoverFloor] = useState<Floor | null>(null);
   const [selectedFloor, setSelectedFloor] = useState<Floor | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [activeUnitNo, setActiveUnitNo] = useState<string>('101');
   const [tagPos, setTagPos] = useState<{ left: number; top: number } | null>(null);
   const [hotRoom, setHotRoom] = useState<Room | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [portrait, setPortrait] = useState(isPortrait());
+
+  // Modals state
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [enquiryMode, setEnquiryMode] = useState<'floorplan' | 'sitevisit'>('floorplan');
+  const [enquiryPrefill, setEnquiryPrefill] = useState<EnquiryPrefill | null>(null);
+  const [floorPlansOpen, setFloorPlansOpen] = useState(false);
+  const [floorPlansTab, setFloorPlansTab] = useState<PlanTab>('all');
+
+  // CAD Pan & Zoom state for Level 3
+  const [cadZoom, setCadZoom] = useState(1);
+  const [cadPan, setCadPan] = useState({ x: 0, y: 0 });
+  const [isCadDragging, setIsCadDragging] = useState(false);
+  const [cadDragStart, setCadDragStart] = useState({ x: 0, y: 0 });
 
   const appRef = useRef<HTMLDivElement>(null);
   const towerLayerRef = useRef<HTMLElement>(null);
@@ -235,7 +256,8 @@ export const TowerExplorer: React.FC = () => {
       return;
     }
     const t = currentTowerRef.current;
-    const x = TOWER_X1 * t.s + t.tx + 6;
+    const rightX = f.x1 ?? TOWER_X1;
+    const x = rightX * t.s + t.tx + 12;
     const y = ((f.y0 + f.y1) / 2) * t.s + t.ty;
     setTagPos({ left: x, top: y });
   }, []);
@@ -253,27 +275,24 @@ export const TowerExplorer: React.FC = () => {
     if (isBusyRef.current) return;
     isBusyRef.current = true;
     setSelectedFloor(f);
+    setActiveUnitNo(`${f.n}01`);
     setHoverFloor(null);
     setView('zoom');
     viewRef.current = 'zoom';
 
-    const u = UNITS[f.unit];
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Preload unit image & room images
+    // Preload First Floor Plan / Master Key Layout for Level 2
     const imgEl = unitImgRef.current;
+    const layoutSrc = '/assets/nitaara/floorplan/master-plan.jpg';
     const imgReady = new Promise<void>((res) => {
       if (!imgEl) return res();
-      if (imgEl.getAttribute('src') === u.img && imgEl.complete) return res();
+      if (imgEl.getAttribute('src') === layoutSrc && imgEl.complete) return res();
       imgEl.onload = () => res();
       imgEl.onerror = () => res();
-      imgEl.src = u.img;
+      imgEl.src = layoutSrc;
     });
 
-    u.rooms.forEach((r) => {
-      const im = new Image();
-      im.src = r.img;
-    });
     warmUnitClips(f.unit);
 
     // 1) Push camera into floor crop
@@ -287,7 +306,7 @@ export const TowerExplorer: React.FC = () => {
     // Position unitPlane at full frame
     applyTransform(unitPlaneRef.current, fitRect(FULL_IMAGE_RECT, frameRect()));
 
-    // 2) Transition clip or dive
+    // 2) Transition dive
     const ec = CLIPS[`${f.unit}_enter`];
     const played = await playVideoClip(ec?.src, ec?.rate, () =>
       towerBlend(ec, targetCrop, false, f.n)
@@ -322,7 +341,7 @@ export const TowerExplorer: React.FC = () => {
       }
     }
 
-    // Move dollhouse to rest position
+    // Move floor layout to rest position
     const rest = unitRest();
     applyTransform(unitPlaneRef.current, rest, reduce ? 0 : 900, 'var(--ease)');
     dotsContainerRef.current?.style.setProperty('--inv', `${1 / rest.s}`);
@@ -348,13 +367,21 @@ export const TowerExplorer: React.FC = () => {
     isBusyRef.current = true;
     const f = floorRef.current;
     setSelectedRoom(r);
+    setCadZoom(1);
+    setCadPan({ x: 0, y: 0 });
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Determine correct unit CAD plan based on active flat
+    const suffix = activeUnitNo.slice(-2);
+    let planSrc = '/assets/nitaara/floorplan/floor-plan1.jpg';
+    if (suffix === '02') planSrc = '/assets/nitaara/floorplan/floor-plan2.jpg';
+    else if (suffix === '03') planSrc = '/assets/nitaara/floorplan/floor-plan3.jpg';
 
     // Preload reverse clip
     warmVideo(CLIPS[`${f.unit}_${r.id}`]?.rev);
 
-    // Hide dots and panel
+    // Hide dots
     if (dotsContainerRef.current) {
       Array.from(dotsContainerRef.current.children).forEach((d) => d.classList.remove('on'));
     }
@@ -363,10 +390,10 @@ export const TowerExplorer: React.FC = () => {
     const roomImgEl = roomImgRef.current;
     const imgReady = new Promise<void>((res) => {
       if (!roomImgEl) return res();
-      if (roomImgEl.getAttribute('src') === r.img && roomImgEl.complete) return res();
+      if (roomImgEl.getAttribute('src') === planSrc && roomImgEl.complete) return res();
       roomImgEl.onload = () => res();
       roomImgEl.onerror = () => res();
-      roomImgEl.src = r.img;
+      roomImgEl.src = planSrc;
     });
 
     if (fromRoom) {
@@ -434,6 +461,20 @@ export const TowerExplorer: React.FC = () => {
     setView('room');
     viewRef.current = 'room';
     isBusyRef.current = false;
+  };
+
+  const handleSelectUnitNo = (unitNo: string) => {
+    setActiveUnitNo(unitNo);
+    const suffix = unitNo.slice(-2);
+    let planSrc = '/assets/nitaara/floorplan/floor-plan1.jpg';
+    if (suffix === '02') planSrc = '/assets/nitaara/floorplan/floor-plan2.jpg';
+    else if (suffix === '03') planSrc = '/assets/nitaara/floorplan/floor-plan3.jpg';
+
+    if (roomImgRef.current) {
+      roomImgRef.current.src = planSrc;
+    }
+    setCadZoom(1);
+    setCadPan({ x: 0, y: 0 });
   };
 
   const handleBack = async () => {
@@ -544,16 +585,48 @@ export const TowerExplorer: React.FC = () => {
     isBusyRef.current = false;
   };
 
-  // Keyboard escape listener
+  // Keyboard navigation & escape listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (enquiryOpen) {
+          setEnquiryOpen(false);
+          return;
+        }
+        if (floorPlansOpen) {
+          setFloorPlansOpen(false);
+          return;
+        }
         handleBack();
+        return;
+      }
+
+      if (viewRef.current === 'tower' && !isBusyRef.current) {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          setHoverFloor((prev) => {
+            const nextNum = prev ? Math.min(prev.n + 1, FLOORS[0].n) : 1;
+            const nextFloor = FLOORS.find((f) => f.n === nextNum) || null;
+            updateTagPosition(nextFloor);
+            return nextFloor;
+          });
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          setHoverFloor((prev) => {
+            const nextNum = prev ? Math.max(prev.n - 1, 1) : FLOORS[0].n;
+            const nextFloor = FLOORS.find((f) => f.n === nextNum) || null;
+            updateTagPosition(nextFloor);
+            return nextFloor;
+          });
+        } else if (e.key === 'Enter' && hoverFloor) {
+          e.preventDefault();
+          enterFloor(hoverFloor);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [hoverFloor, updateTagPosition, enquiryOpen, floorPlansOpen]);
 
   // Window resize handler
   useEffect(() => {
@@ -582,7 +655,6 @@ export const TowerExplorer: React.FC = () => {
 
   // Initial setup & Intro sequence
   useEffect(() => {
-    // Set 5504x3072 plane dimensions
     [towerPlaneRef.current, unitPlaneRef.current, roomPlaneRef.current].forEach((plane) => {
       if (plane) {
         plane.style.width = `${IW}px`;
@@ -628,23 +700,76 @@ export const TowerExplorer: React.FC = () => {
     }
   }, []);
 
-  const handleInquire = () => {
+  const handleInquire = (unitInfo?: { floor?: number; unitNo?: string; label?: string; price?: string }) => {
     setToastMsg('Demo: this opens the private tour / floor plan request form.');
+    if (unitInfo) {
+      setEnquiryPrefill(unitInfo);
+      setEnquiryMode('floorplan');
+      setEnquiryOpen(true);
+    } else if (selectedFloor) {
+      const units = getFloorUnits(selectedFloor.n);
+      const curr = units.find((u) => u.unitNo === activeUnitNo) || units[0];
+      setEnquiryPrefill({
+        floor: selectedFloor.n,
+        unitNo: curr.unitNo,
+        label: curr.label,
+        price: curr.priceLabel,
+      });
+      setEnquiryMode('floorplan');
+      setEnquiryOpen(true);
+    }
+  };
+
+  const handleSiteVisit = () => {
+    setToastMsg('Demo: this opens the private tour / site visit enquiry form.');
+    if (selectedFloor) {
+      const units = getFloorUnits(selectedFloor.n);
+      const curr = units.find((u) => u.unitNo === activeUnitNo) || units[0];
+      setEnquiryPrefill({
+        floor: selectedFloor.n,
+        unitNo: curr.unitNo,
+        label: curr.label,
+        price: curr.priceLabel,
+      });
+    } else {
+      setEnquiryPrefill({
+        label: '3 & 4 BHK Luxury Residences',
+        price: 'From ₹1.85 Cr All inclusive',
+      });
+    }
+    setEnquiryMode('sitevisit');
+    setEnquiryOpen(true);
   };
 
   const handleNavClick = (section: string) => {
     if (section === 'residences') {
-      const f = FLOORS.find((x) => x.unit === 'A');
+      const f = FLOORS.find((x) => x.n === 12) || FLOORS[0];
       if (f) enterFloor(f);
     } else if (section === 'penthouses') {
-      const f = FLOORS.find((x) => x.unit === 'P');
+      const f = FLOORS.find((x) => x.n === 25) || FLOORS[0];
       if (f) enterFloor(f);
+    } else if (section === 'amenities') {
+      setToastMsg('Level 26 Rooftop Sky Retreat & Infinity Pool — 7 Luxury Lifestyle Amenities.');
+    } else if (section === 'layout' || section === 'floorplans') {
+      setFloorPlansTab('all');
+      setFloorPlansOpen(true);
     } else {
-      setToastMsg(`Demo: navigating to ${section}.`);
+      setToastMsg(`Navigating to ${section}.`);
     }
   };
 
-  const isCoarse = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const isTouch =
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(pointer: coarse)').matches ||
+      isPortrait() ||
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0);
+
+  // Active unit details for Level 3 caption
+  const activeUnitDetails = selectedFloor
+    ? getFloorUnits(selectedFloor.n).find((u) => u.unitNo === activeUnitNo) ||
+      getFloorUnits(selectedFloor.n)[0]
+    : null;
 
   return (
     <div id="app" ref={appRef} data-view={view}>
@@ -654,16 +779,14 @@ export const TowerExplorer: React.FC = () => {
           <img
             id="towerImg"
             ref={towerImgRef}
-            src="/assets/tower.jpg"
-            srcSet="/assets/tower_sm.jpg 1920w, /assets/tower.jpg 3840w"
-            sizes="(max-width: 900px) 1920px, 3840px"
-            alt="The Solenne tower at dusk on Biscayne Bay"
+            src="/assets/nitaara/banner/desk1.jpg"
+            alt="Nitaara Tower Nigdi Pradhikaran"
             draggable={false}
           />
           <svg
             id="bands"
             ref={bandsSvgRef}
-            viewBox="0 0 5504 3072"
+            viewBox={`0 0 ${IW} ${IH}`}
             preserveAspectRatio="none"
             aria-label="Tower Floors"
             onPointerMove={(e) => {
@@ -673,7 +796,7 @@ export const TowerExplorer: React.FC = () => {
               handleFloorHover(n ? FLOORS.find((f) => f.n === n) || null : null);
             }}
             onPointerLeave={(e) => {
-              if (e.pointerType !== 'touch' && view === 'tower') {
+              if (!isTouch && e.pointerType !== 'touch' && view === 'tower') {
                 handleFloorHover(null);
               }
             }}
@@ -686,7 +809,7 @@ export const TowerExplorer: React.FC = () => {
                 handleFloorHover(null);
                 return;
               }
-              if (isCoarse && hoverFloor !== f) {
+              if (isTouch && hoverFloor !== f) {
                 handleFloorHover(f);
                 return;
               }
@@ -697,13 +820,13 @@ export const TowerExplorer: React.FC = () => {
               const isPh = f.unit === 'P';
               const isHovered = hoverFloor?.n === f.n;
               const className = `band${isPh ? ' ph' : ''}${isHovered ? ' on' : ''}`;
+              const x0 = f.x0 ?? TOWER_X0;
+              const x1 = f.x1 ?? TOWER_X1;
+              const points = `${x0},${f.y0 + 1} ${x1},${f.y0 + 1} ${x1},${f.y1 - 1} ${x0},${f.y1 - 1}`;
               return (
-                <rect
+                <polygon
                   key={f.n}
-                  x={TOWER_X0}
-                  width={TOWER_X1 - TOWER_X0}
-                  y={f.y0 + 2}
-                  height={f.y1 - f.y0 - 4}
+                  points={points}
                   className={className}
                   data-n={f.n}
                 />
@@ -713,10 +836,16 @@ export const TowerExplorer: React.FC = () => {
         </div>
       </section>
 
-      {/* UNIT (DOLLHOUSE) LAYER */}
+      {/* UNIT (FLOOR KEY LAYOUT) LAYER */}
       <section className="layer hidden" id="unitLayer" ref={unitLayerRef}>
         <div className="plane" id="unitPlane" ref={unitPlaneRef}>
-          <img id="unitImg" ref={unitImgRef} alt="Dollhouse floor plan" draggable={false} />
+          <img
+            id="unitImg"
+            ref={unitImgRef}
+            src="/assets/nitaara/floorplan/master-plan.jpg"
+            alt="First Floor Plan & Key Layout"
+            draggable={false}
+          />
           <div id="dots" ref={dotsContainerRef}>
             {selectedFloor &&
               UNITS[selectedFloor.unit].rooms.map((r) => {
@@ -732,7 +861,7 @@ export const TowerExplorer: React.FC = () => {
                   >
                     <button
                       type="button"
-                      aria-label={`Go to ${r.name}`}
+                      aria-label={`Inspect ${r.name}`}
                       onClick={() => enterRoom(r)}
                     >
                       <i />
@@ -745,11 +874,152 @@ export const TowerExplorer: React.FC = () => {
         </div>
       </section>
 
-      {/* ROOM LAYER */}
-      <section className="layer hidden" id="roomLayer" ref={roomLayerRef}>
-        <div className="plane" id="roomPlane" ref={roomPlaneRef}>
-          <img id="roomImg" ref={roomImgRef} alt="Room interior" draggable={false} />
+      {/* ROOM / LEVEL 3 UNIT CAD FLOOR PLAN LAYER WITH PAN & ZOOM */}
+      <section
+        className="layer hidden"
+        id="roomLayer"
+        ref={roomLayerRef}
+        onPointerDown={(e) => {
+          if (view !== 'room') return;
+          setIsCadDragging(true);
+          setCadDragStart({ x: e.clientX - cadPan.x, y: e.clientY - cadPan.y });
+        }}
+        onPointerMove={(e) => {
+          if (!isCadDragging || view !== 'room') return;
+          setCadPan({
+            x: e.clientX - cadDragStart.x,
+            y: e.clientY - cadDragStart.y,
+          });
+        }}
+        onPointerUp={() => setIsCadDragging(false)}
+        onPointerCancel={() => setIsCadDragging(false)}
+        onWheel={(e) => {
+          if (view !== 'room') return;
+          const delta = e.deltaY < 0 ? 0.15 : -0.15;
+          setCadZoom((z) => Math.min(Math.max(0.7, z + delta), 3.5));
+        }}
+      >
+        <div
+          className="plane"
+          id="roomPlane"
+          ref={roomPlaneRef}
+          style={{
+            transform: `translate(${cadPan.x}px, ${cadPan.y}px) scale(${cadZoom})`,
+            transformOrigin: 'center center',
+            transition: isCadDragging ? 'none' : 'transform 0.12s ease-out',
+            cursor: isCadDragging ? 'grabbing' : 'grab',
+          }}
+        >
+          <img
+            id="roomImg"
+            ref={roomImgRef}
+            src="/assets/nitaara/floorplan/floor-plan1.jpg"
+            alt="Unit CAD Floor Plan"
+            draggable={false}
+          />
         </div>
+
+        {/* Level 3 Floating CAD Info & Zoom Controls */}
+        {view === 'room' && selectedFloor && activeUnitDetails && (
+          <>
+            <div
+              className="cad-caption-badge"
+              style={{
+                position: 'absolute',
+                top: '72px',
+                left: '32px',
+                zIndex: 20,
+                background: 'rgba(20, 20, 20, 0.88)',
+                border: '1px solid rgba(197, 155, 60, 0.4)',
+                borderRadius: '6px',
+                padding: '8px 16px',
+                color: '#f4efe6',
+                backdropFilter: 'blur(8px)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                pointerEvents: 'none',
+              }}
+            >
+              <div style={{ fontSize: '10px', color: '#c59b3c', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
+                Level 3 · Interactive CAD Floor Plan Drill-down
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>
+                Floor {selectedFloor.n} · Flat {activeUnitNo} · {activeUnitDetails.label} ({activeUnitDetails.totalSqFt.toLocaleString()} sq ft)
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(244, 239, 230, 0.7)' }}>
+                RERA Carpet: {activeUnitDetails.reraCarpetSqFt.toLocaleString()} SF + Balcony: {activeUnitDetails.balconySqFt.toLocaleString()} SF · {activeUnitDetails.priceLabel} All inclusive
+              </div>
+            </div>
+
+            <div
+              className="cad-zoom-controls"
+              style={{
+                position: 'absolute',
+                top: '72px',
+                right: '32px',
+                zIndex: 20,
+                display: 'flex',
+                gap: '6px',
+                background: 'rgba(20, 20, 20, 0.85)',
+                border: '1px solid rgba(197, 155, 60, 0.3)',
+                borderRadius: '6px',
+                padding: '4px',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setCadZoom((z) => Math.min(3.5, z + 0.25))}
+                style={{
+                  padding: '6px 12px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                }}
+                title="Zoom In (+)"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={() => setCadZoom((z) => Math.max(0.7, z - 0.25))}
+                style={{
+                  padding: '6px 12px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                }}
+                title="Zoom Out (-)"
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCadZoom(1);
+                  setCadPan({ x: 0, y: 0 });
+                }}
+                style={{
+                  padding: '6px 10px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                }}
+                title="Reset Zoom to 100%"
+              >
+                Reset ({Math.round(cadZoom * 100)}%)
+              </button>
+            </div>
+          </>
+        )}
       </section>
 
       {/* VIDEO CLIP & FLASH LAYERS */}
@@ -773,31 +1043,123 @@ export const TowerExplorer: React.FC = () => {
         isPortrait={portrait}
       />
 
-      <Hint view={view} isCoarse={isCoarse} />
+      <Hint view={view} isCoarse={isTouch} />
 
       <UnitPanel
         floor={selectedFloor}
         isOpen={view === 'unit'}
         onBack={handleBack}
-        onInquire={handleInquire}
+        onInquire={(info) => handleInquire(info)}
+        onSiteVisit={handleSiteVisit}
         onSelectRoom={(r) => enterRoom(r)}
         onRoomHover={setHotRoom}
+        onSelectUnitType={(typeId) => {
+          if (typeId === '3bhk-type-01' && selectedFloor) setActiveUnitNo(`${selectedFloor.n}01`);
+          else if (typeId === '3bhk-type-02' && selectedFloor) setActiveUnitNo(`${selectedFloor.n}02`);
+          else if (typeId === '4bhk' && selectedFloor) setActiveUnitNo(`${selectedFloor.n}03`);
+        }}
       />
 
       <RoomBar
         floor={selectedFloor}
         room={selectedRoom}
+        activeUnitNo={activeUnitNo}
         isOpen={view === 'room'}
         onBack={handleBack}
         onSelectRoom={(r) => enterRoom(r, true)}
+        onSelectUnitNo={handleSelectUnitNo}
+        onInquire={(info) => handleInquire(info)}
       />
+
+      {/* Floating Action Buttons */}
+      {view === 'tower' && (
+        <div
+          className="floating-nav-pills"
+          style={{
+            position: 'fixed',
+            bottom: '16px',
+            left: '24px',
+            zIndex: 9990,
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setFloorPlansTab('all');
+              setFloorPlansOpen(true);
+            }}
+            style={{
+              background: 'rgba(34, 33, 31, 0.9)',
+              border: '1px solid rgba(197, 155, 60, 0.4)',
+              color: '#c59b3c',
+              borderRadius: '20px',
+              padding: '7px 14px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            title="Open Builder Floor Plans Gallery & Master Plan Lightbox"
+          >
+            <span>📐 Floor Plans & Layout</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSiteVisit}
+            style={{
+              background: 'rgba(34, 33, 31, 0.9)',
+              border: '1px solid rgba(197, 155, 60, 0.4)',
+              color: '#f4efe6',
+              borderRadius: '20px',
+              padding: '7px 14px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            title="Request for Site Visit at Bhakti Shakti Chowk, Nigdi Pradhikaran"
+          >
+            <span>📍 Request Site Visit</span>
+          </button>
+        </div>
+      )}
 
       <Cursor />
 
       <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
 
+      {/* Modals */}
+      <EnquiryModal
+        isOpen={enquiryOpen}
+        onClose={() => setEnquiryOpen(false)}
+        initialMode={enquiryMode}
+        prefill={enquiryPrefill}
+      />
+
+      <FloorPlansModal
+        isOpen={floorPlansOpen}
+        onClose={() => setFloorPlansOpen(false)}
+        initialTab={floorPlansTab}
+        onOpenEnquiry={(info) => {
+          setFloorPlansOpen(false);
+          handleInquire(info);
+        }}
+      />
+
       <div className="disclaimer">
-        Concept demo by Lynam Up Media. The Solenne is fictional; all imagery is AI-generated.
+        Concept prototype — not an official website. All details are tentative and subject to revision. MahaRERA&nbsp;P52100050692.
       </div>
     </div>
   );

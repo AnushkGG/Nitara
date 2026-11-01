@@ -9,28 +9,20 @@ export const Header: React.FC<HeaderProps> = ({ onInquire, onNavigate }) => {
   return (
     <header className="top" role="banner">
       <div className="brand">
-        <span className="mark" aria-hidden="true">
-          S
-        </span>
-        <span className="word">THE SOLENNE</span>
-        <span className="sub">Brickell Bay · Miami</span>
+        <img
+          src="/assets/nitaara/logo-white2.png"
+          alt="Nitaara Tower"
+          style={{ height: '36px', width: 'auto', display: 'block' }}
+        />
       </div>
       <nav className="nav" aria-label="Main Navigation">
         <span
           role="button"
           tabIndex={0}
-          onClick={() => onNavigate?.('residences')}
-          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('residences')}
+          onClick={() => onNavigate?.('overview')}
+          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('overview')}
         >
-          Residences
-        </span>
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={() => onNavigate?.('penthouses')}
-          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('penthouses')}
-        >
-          Penthouses
+          Overview
         </span>
         <span
           role="button"
@@ -40,19 +32,26 @@ export const Header: React.FC<HeaderProps> = ({ onInquire, onNavigate }) => {
         >
           Amenities
         </span>
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={() => onNavigate?.('floorplans')}
+          onKeyDown={(e) => e.key === 'Enter' && onNavigate?.('floorplans')}
+        >
+          Floor Plans
+        </span>
         <a
           className="cta"
-          href="#tour"
+          href="#contact"
           data-action="inquire"
           onClick={(e) => {
             e.preventDefault();
             onInquire();
           }}
         >
-          Private Tour
+          Request Site Visit
         </a>
       </nav>
     </header>
   );
 };
-

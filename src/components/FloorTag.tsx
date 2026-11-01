@@ -1,6 +1,6 @@
 import React from 'react';
 import { Floor } from '../types';
-import { UNITS, getFloorStatus, STATUS_TEXT, formatPrice } from '../data/towerData';
+import { UNITS, formatPrice } from '../data/towerData';
 
 interface FloorTagProps {
   floor: Floor | null;
@@ -20,11 +20,10 @@ export const FloorTag: React.FC<FloorTagProps> = ({
   }
 
   const u = UNITS[floor.unit];
-  const st = getFloorStatus(floor.n);
-  const typeText = floor.n === 33 ? 'Sky Penthouse' : u.name;
-  const specText = `${u.beds} Bed · ${u.baths} Bath · ${u.sf} SF`;
-  const pillText = st === 'sold' ? 'Sold' : `${STATUS_TEXT[st]} · from ${formatPrice(floor)}`;
-  const pillClass = 'pill' + (st === 'ok' ? '' : ' ' + st);
+  const typeText = floor.n >= 18 ? '4 BHK Luxury Residence' : '3 BHK Premium Residence';
+  const specText = `${u.beds} BHK · ${u.sf} sq ft carpet`;
+  const pillText = `Enquire · ${formatPrice(floor)} all inc.`;
+  const pillClass = 'pill ok';
 
   const style: React.CSSProperties =
     !isPortrait && position

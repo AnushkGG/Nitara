@@ -1,185 +1,219 @@
-import { Floor, Unit, UnitKey, AvailabilityStatus, TransitionClip } from '../types';
+import { Floor, Unit, UnitKey, AvailabilityStatus, TransitionClip, FloorUnitDetail } from '../types';
+import { tower } from './nitaara.data';
+import towerHotspots from './towerHotspots';
 
-export const IW = 5504;
-export const IH = 3072;
-export const TOWER_X0 = 2218;
-export const TOWER_X1 = 3282;
+export const IW = 2000;
+export const IH = 857;
+export const TOWER_X0 = 1085;
+export const TOWER_X1 = 1412;
+export const CROWN_TOP = 53;
 
-// Floor slab lines measured off the tower photo, top to bottom (floor 32 roof line .. floor 4 base).
-export const LINES = [
-  429, 495, 581, 668, 747, 816, 885, 955, 1022, 1092, 1159, 1228, 1298, 1365,
-  1435, 1503, 1572, 1640, 1708, 1777, 1843, 1913, 1979, 2048, 2115, 2185, 2252,
-  2320, 2388, 2453
+// Map hotspot data to Floor objects
+export const HOTSPOTS = towerHotspots;
+
+export const getFloorUnits = (floorNum: number): FloorUnitDetail[] => [
+  {
+    unitNo: `${floorNum}01`,
+    flatSuffix: '01',
+    typeId: '3bhk-type-01',
+    label: '3 BHK (Type 01)',
+    config: '3 BHK',
+    reraCarpetSqFt: 1058,
+    balconySqFt: 189,
+    totalSqFt: 1247,
+    formedTerraceSqFt: floorNum === 1 ? 1519 : undefined,
+    priceLabel: '₹1.85 Cr',
+    priceNote: 'All inclusive',
+    floorPlanSrc: '/assets/nitaara/floorplan/floor-plan1.jpg',
+    availability: 'enquire',
+    rooms: [
+      { name: 'Living & Dining', dims: "19'0\" × 13'10\"" },
+      { name: 'Open Balcony', dims: "15'0\" × 5'0\"" },
+      { name: 'Kitchen & Utility', dims: "13'0\" × 8'5\" + 8'6\" × 4'0\"" },
+      { name: 'Master Suite', dims: "11'5\" × 14'2\" + Bath 5'0\" × 7'10\"" },
+      { name: 'Bedroom 2', dims: "12'4\" × 13'5\" + Balcony 7'0\" × 3'3\"" },
+      { name: 'Bedroom 3', dims: "10'3\" × 14'0\"" },
+    ],
+  },
+  {
+    unitNo: `${floorNum}02`,
+    flatSuffix: '02',
+    typeId: '3bhk-type-02',
+    label: '3 BHK (Type 02)',
+    config: '3 BHK',
+    reraCarpetSqFt: 1050,
+    balconySqFt: 195,
+    totalSqFt: 1245,
+    formedTerraceSqFt: floorNum === 1 ? 126 : undefined,
+    priceLabel: '₹1.85 Cr',
+    priceNote: 'All inclusive',
+    floorPlanSrc: '/assets/nitaara/floorplan/floor-plan2.jpg',
+    availability: 'enquire',
+    rooms: [
+      { name: 'Living & Dining', dims: "19'0\" × 13'10\"" },
+      { name: 'Open Balcony', dims: "15'0\" × 5'0\"" },
+      { name: 'Kitchen & Utility', dims: "13'0\" × 8'5\" + 8'6\" × 4'0\"" },
+      { name: 'Master Suite', dims: "11'5\" × 14'2\" + Bath 5'0\" × 7'10\"" },
+      { name: 'Bedroom 2', dims: "12'4\" × 13'5\" + Balcony 7'0\" × 3'3\"" },
+      { name: 'Bedroom 3', dims: "10'3\" × 14'0\"" },
+    ],
+  },
+  {
+    unitNo: `${floorNum}03`,
+    flatSuffix: '03',
+    typeId: '4bhk',
+    label: '4 BHK',
+    config: '4 BHK',
+    reraCarpetSqFt: 1380,
+    balconySqFt: 212,
+    totalSqFt: 1592,
+    formedTerraceSqFt: floorNum === 1 ? 1100 : undefined,
+    priceLabel: '₹2.36 Cr',
+    priceNote: 'All inclusive',
+    floorPlanSrc: '/assets/nitaara/floorplan/floor-plan3.jpg',
+    availability: 'enquire',
+    rooms: [
+      { name: 'Grand Living & Dining', dims: "14'9\" × 18'4\"" },
+      { name: 'Private Balcony', dims: "14'7\" × 6'0\"" },
+      { name: 'Dining Room', dims: "9'3\" × 11'4\"" },
+      { name: 'Chef Kitchen & Utility', dims: "9'0\" × 9'11\" + 9'0\" × 4'0\"" },
+      { name: 'Master Suite', dims: "18'0\" × 10'9\" + Bath 8'0\" × 5'0\"" },
+      { name: 'Bedroom 2', dims: "18'0\" × 10'4\" + Bath 4'10\" × 8'0\"" },
+      { name: 'Bedroom 3', dims: "10'3\" × 10'9\" + Bath 5'0\" × 8'0\"" },
+      { name: 'Bedroom 4 / Study', dims: "10'3\" × 10'9\"" },
+    ],
+  },
 ];
-export const CROWN_TOP = 247;
 
 export const UNITS: Record<UnitKey, Unit> = {
   A: {
-    name: 'Residence A',
-    short: 'Res. A',
-    beds: 2,
-    baths: '2',
-    sf: '1,450',
-    outdoor: '120 SF balcony',
-    copy: 'A bay-facing two-bedroom with a full wall of glass, an open chef’s kitchen and a primary suite with a spa bath and walk-in closet.',
-    img: '/assets/dh_A.jpg',
-    base: 1290000,
-    step: 18000,
+    name: '3 BHK Luxury Residence',
+    short: '3 BHK',
+    beds: 3,
+    baths: '3',
+    sf: '1,247',
+    outdoor: '189 SF Balcony',
+    copy: 'A meticulously designed 3 BHK residence with 3-side open ventilation, grand living & dining spaces, expansive balcony, and premium fixtures.',
+    img: '/assets/nitaara/floorplan/floor-plan1.jpg',
+    base: 18500000,
+    step: 0,
     rooms: [
-      { id: 'living', name: 'Living & Kitchen', x: 46.5, y: 40, img: '/assets/A_living.jpg' },
-      { id: 'bed', name: 'Primary Bedroom', x: 24, y: 28, img: '/assets/A_bed.jpg' },
-      { id: 'bath', name: 'Primary Bath', x: 27, y: 50, img: '/assets/A_bath.jpg' },
+      {
+        id: 'living',
+        name: 'Living & Dining',
+        dims: "19'0\" × 13'10\"",
+        x: 48,
+        y: 44,
+        img: '/assets/nitaara/floorplan/floor-plan1.jpg',
+      },
+      {
+        id: 'balcony',
+        name: 'Open Balcony',
+        dims: "15'0\" × 5'0\"",
+        x: 65,
+        y: 42,
+        img: '/assets/nitaara/floorplan/floor-plan1.jpg',
+      },
+      {
+        id: 'bed',
+        name: 'Master Suite',
+        dims: "11'5\" × 14'2\"",
+        x: 20,
+        y: 35,
+        img: '/assets/nitaara/floorplan/floor-plan1.jpg',
+      },
+      {
+        id: 'kitchen',
+        name: 'Kitchen & Utility',
+        dims: "13'0\" × 8'5\"",
+        x: 52,
+        y: 65,
+        img: '/assets/nitaara/floorplan/floor-plan1.jpg',
+      },
     ],
   },
   P: {
-    name: 'Corner Penthouse',
-    short: 'Penthouse',
-    beds: 3,
-    baths: '3.5',
-    sf: '3,200',
-    outdoor: '1,100 SF wraparound terrace',
-    copy: 'A full corner of sky. Glass on two sides, a wraparound terrace, a chef’s kitchen in black marble and a primary suite with a soaking tub.',
-    img: '/assets/dh_P.jpg',
-    base: 5400000,
-    step: 600000,
+    name: '4 BHK Grand Residence',
+    short: '4 BHK',
+    beds: 4,
+    baths: '4',
+    sf: '1,592',
+    outdoor: '212 SF Balcony',
+    copy: 'An expansive 4 BHK luxury home featuring a palatial master suite, private outdoor balconies, dedicated servant/utility area, and panoramic Nigdi skyline views.',
+    img: '/assets/nitaara/floorplan/floor-plan3.jpg',
+    base: 23600000,
+    step: 0,
     rooms: [
-      { id: 'great', name: 'Great Room', x: 52, y: 59, img: '/assets/P_great.jpg' },
-      { id: 'kitchen', name: 'Chef’s Kitchen', x: 62.5, y: 43, img: '/assets/P_kitchen.jpg' },
-      { id: 'suite', name: 'Primary Suite', x: 76, y: 31, img: '/assets/P_suite.jpg' },
-      { id: 'bath', name: 'Spa Bath', x: 19.5, y: 51, img: '/assets/P_bath.jpg' },
+      {
+        id: 'great',
+        name: 'Grand Living & Dining',
+        dims: "14'9\" × 18'4\"",
+        x: 50,
+        y: 50,
+        img: '/assets/nitaara/floorplan/floor-plan3.jpg',
+      },
+      {
+        id: 'balcony',
+        name: 'Private Balcony',
+        dims: "14'7\" × 6'0\"",
+        x: 68,
+        y: 48,
+        img: '/assets/nitaara/floorplan/floor-plan3.jpg',
+      },
+      {
+        id: 'suite',
+        name: 'Master Suite',
+        dims: "18'0\" × 10'9\"",
+        x: 75,
+        y: 32,
+        img: '/assets/nitaara/floorplan/floor-plan3.jpg',
+      },
+      {
+        id: 'kitchen',
+        name: 'Chef Kitchen & Utility',
+        dims: "9'0\" × 9'11\"",
+        x: 35,
+        y: 62,
+        img: '/assets/nitaara/floorplan/floor-plan3.jpg',
+      },
     ],
   },
 };
 
+// Floors dynamically generated from tower.totalFloors and calibrated hotspots
 export const FLOORS: Floor[] = (() => {
-  const list: Floor[] = [];
-  list.push({ n: 33, y0: CROWN_TOP, y1: LINES[0], unit: 'P' });
-  for (let i = 0; i < LINES.length - 1; i++) {
-    const n = 32 - i;
-    list.push({ n, y0: LINES[i], y1: LINES[i + 1], unit: n >= 30 ? 'P' : 'A' });
+  if (!tower.totalFloors) {
+    throw new Error('tower.totalFloors must be defined');
   }
-  return list;
+
+  return HOTSPOTS.map((h) => {
+    const isUpper = h.floor >= 18;
+    return {
+      n: h.floor,
+      y0: h.y0,
+      y1: h.y1,
+      x0: h.x0,
+      x1: h.x1,
+      polygon: h.polygon as [number, number][],
+      label: h.label,
+      unit: isUpper ? ('P' as UnitKey) : ('A' as UnitKey),
+    };
+  });
 })();
 
-export const getFloorStatus = (n: number): AvailabilityStatus => {
-  const h = (n * 2654435761) % 97;
-  return h < 18 ? 'sold' : h < 30 ? 'hold' : 'ok';
+export const getFloorStatus = (_n: number): AvailabilityStatus => {
+  return 'ok';
 };
 
 export const STATUS_TEXT: Record<AvailabilityStatus, string> = {
-  ok: 'Available',
-  hold: 'Reserved',
-  sold: 'Sold',
+  ok: 'Available on Enquiry',
+  hold: 'Enquire for Status',
+  sold: 'Enquire for Status',
 };
 
 export const formatPrice = (f: Floor): string => {
-  const u = UNITS[f.unit];
-  const steps = f.unit === 'P' ? f.n - 30 : f.n - 4;
-  const v = u.base + steps * u.step;
-  return v >= 1e6 ? `$${(v / 1e6).toFixed(2).replace(/0$/, '')}M` : `$${Math.round(v / 1e3)}K`;
+  return f.unit === 'P' ? '₹2.36 Cr' : '₹1.85 Cr';
 };
 
-export const CLIPS: Record<string, TransitionClip> = {
-  A_enter: {
-    src: '/assets/clips/A_enter.mp4',
-    rev: '/assets/clips/A_enter_rev.mp4',
-    rate: 1.25,
-    from: [22],
-    fps: 24,
-    w: 1600,
-    lead: [
-      [1.0, 0.0, -0.0],
-      [1.0002, -0.2, -0.1],
-      [1.0015, -1.1, -0.8],
-      [1.003, -2.3, -1.4],
-      [1.0047, -3.7, -2.2],
-      [1.0062, -4.9, -2.8],
-      [1.0079, -6.2, -3.6],
-      [1.0094, -7.4, -4.4],
-      [1.011, -8.8, -5.0],
-      [1.0128, -10.2, -5.9],
-      [1.0146, -11.8, -6.4],
-      [1.0159, -12.7, -7.4],
-      [1.0173, -13.9, -7.6],
-      [1.0196, -15.5, -9.0],
-      [1.0212, -16.9, -9.7],
-      [1.0234, -18.9, -10.5],
-      [1.0248, -19.7, -11.2],
-      [1.0266, -21.3, -12.2],
-      [1.0284, -22.5, -13.1],
-      [1.0302, -24.1, -13.8],
-      [1.0319, -25.4, -14.5],
-      [1.0336, -26.7, -15.4],
-      [1.0356, -28.3, -16.1],
-      [1.0373, -29.8, -17.0],
-      [1.0389, -31.0, -17.9],
-      [1.0408, -32.6, -18.5],
-      [1.0427, -34.4, -19.0],
-      [1.0446, -35.6, -20.4],
-      [1.0463, -37.4, -20.2],
-      [1.0483, -38.6, -22.2],
-      [1.0504, -40.3, -23.1],
-      [1.052, -41.8, -23.2],
-      [1.0535, -42.5, -24.4],
-      [1.056, -44.6, -26.1],
-      [1.0576, -46.2, -25.8],
-      [1.0599, -48.2, -27.0],
-      [1.0617, -49.1, -28.6],
-    ],
-  },
-  P_enter: {
-    src: '/assets/clips/P_enter.mp4',
-    rev: '/assets/clips/P_enter_rev.mp4',
-    rate: 1.25,
-    from: [30, 31, 32, 33],
-    fps: 24,
-    w: 1600,
-    lead: [
-      [1.0, 0.0, 0.0],
-      [1.0002, -0.2, -0.1],
-      [1.0012, -1.0, -0.4],
-      [1.0024, -1.9, -0.8],
-      [1.0038, -3.0, -1.3],
-      [1.0053, -4.2, -1.6],
-      [1.0072, -5.7, -2.2],
-      [1.0092, -7.3, -2.8],
-      [1.0115, -9.2, -3.5],
-      [1.0142, -11.3, -4.2],
-      [1.0171, -13.6, -5.2],
-      [1.0201, -15.9, -6.0],
-      [1.0236, -18.8, -6.9],
-      [1.0276, -22.3, -7.9],
-      [1.0306, -24.5, -8.6],
-      [1.036, -28.7, -10.2],
-      [1.0406, -32.5, -11.4],
-      [1.0455, -36.4, -12.7],
-      [1.0521, -41.7, -14.6],
-      [1.0573, -45.8, -15.9],
-      [1.0629, -50.2, -17.4],
-      [1.0688, -54.8, -19.0],
-      [1.0753, -60.1, -20.6],
-      [1.0816, -65.1, -22.0],
-      [1.0882, -70.4, -24.0],
-      [1.0953, -75.7, -26.3],
-      [1.1044, -83.1, -28.4],
-      [1.1122, -89.1, -30.7],
-      [1.1205, -96.0, -32.4],
-      [1.1305, -104.1, -34.2],
-      [1.1412, -112.8, -36.6],
-      [1.15, -119.5, -39.6],
-      [1.1633, -130.7, -41.4],
-      [1.1728, -137.0, -45.8],
-      [1.1872, -149.7, -47.7],
-      [1.1972, -156.9, -51.3],
-      [1.2077, -165.2, -54.7],
-    ],
-  },
-  A_bed: { src: '/assets/clips/A_bed.mp4', rev: '/assets/clips/A_bed_rev.mp4', rate: 1.2 },
-  A_bath: { src: '/assets/clips/A_bath.mp4', rev: '/assets/clips/A_bath_rev.mp4', rate: 1.2 },
-  P_kitchen: { src: '/assets/clips/P_kitchen.mp4', rev: '/assets/clips/P_kitchen_rev.mp4', rate: 1.2 },
-  P_suite: { src: '/assets/clips/P_suite.mp4', rev: '/assets/clips/P_suite_rev.mp4', rate: 1.2 },
-  A_living: { src: '/assets/clips/A_living.mp4', rev: '/assets/clips/A_living_rev.mp4', rate: 1.2 },
-  P_great: { src: '/assets/clips/P_great.mp4', rev: '/assets/clips/P_great_rev.mp4', rate: 1.2 },
-  P_bath: { src: '/assets/clips/P_bath.mp4', rev: '/assets/clips/P_bath_rev.mp4', rate: 1.2 },
-};
-
+// Transition clips: gracefully empty to bypass missing video files and use smooth CSS camera zoom
+export const CLIPS: Record<string, TransitionClip> = {};

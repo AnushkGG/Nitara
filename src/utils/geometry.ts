@@ -1,5 +1,5 @@
 import { Rect, Transform, Floor } from '../types';
-import { IW, IH, TOWER_X0, TOWER_X1, FLOORS } from '../data/towerData';
+import { IW, IH, TOWER_X0, TOWER_X1 } from '../data/towerData';
 
 export const isPortrait = (): boolean => {
   return window.innerWidth / window.innerHeight < 1;
@@ -9,7 +9,7 @@ export const frameRect = (): Rect => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   if (isPortrait()) {
-    const w = vw * 1.06;
+    const w = vw * 1.05;
     const h = (w * IH) / IW;
     return { x: (vw - w) / 2, y: Math.max(64, vh * 0.36 - h / 2), w, h };
   }
@@ -20,23 +20,35 @@ export const frameRect = (): Rect => {
 export const towerRest = (): Transform => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  let s = Math.max(vw / IW, vh / IH);
-  if (isPortrait()) {
-    s = Math.max((vh * 0.98) / (IH - 120), vw / (TOWER_X1 - TOWER_X0 + 360));
+  const towerH = 680; // Distance from crown (53) to ground (748)
+  const portraitMode = isPortrait();
+
+  let s: number;
+  if (portraitMode) {
+    const scaleByW = (vw * 0.95) / (TOWER_X1 - TOWER_X0 + 60);
+    const scaleByH = (vh * 0.82) / towerH;
+    s = Math.min(scaleByW, scaleByH);
+  } else {
+    const scaleByH = (vh * 0.88) / towerH;
+    const scaleByW = (vw * 0.9) / IW;
+    s = Math.min(scaleByH, scaleByW);
   }
+
   const cx = (TOWER_X0 + TOWER_X1) / 2;
+  const cy = (106 + 748) / 2;
   const tx = vw / 2 - cx * s;
-  const ty = isPortrait() ? vh / 2 - IH * 0.52 * s : (vh - IH * s) / 2;
+  const ty = portraitMode ? vh / 2 - cy * s + 10 : vh / 2 - cy * s + 24;
+
   return { s, tx, ty };
 };
 
 export const floorCrop = (f: Floor): Rect => {
-  const w = 1700;
+  const w = 800;
   const h = (w * IH) / IW;
-  const g = f.unit === 'P' ? FLOORS.find((x) => x.n === 31) || f : f;
-  const cy = (g.y0 + g.y1) / 2;
+  const cy = (f.y0 + f.y1) / 2;
+  const cx = (f.x0 && f.x1 ? (f.x0 + f.x1) / 2 : (TOWER_X0 + TOWER_X1) / 2);
   return {
-    x: (TOWER_X0 + TOWER_X1) / 2 - w / 2,
+    x: cx - w / 2,
     y: Math.max(0, cy - h / 2),
     w,
     h,
@@ -84,4 +96,3 @@ export const applyTransform = (
   el.style.transition = ms ? `transform ${ms}ms ${ease}` : 'none';
   el.style.transform = `translate3d(${t.tx}px, ${t.ty}px, 0) scale(${t.s})`;
 };
-
