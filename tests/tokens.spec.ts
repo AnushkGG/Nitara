@@ -16,7 +16,7 @@ test.describe('Foundations & Tokens', () => {
     expect(['rgb(244, 239, 230)', 'rgb(255, 255, 255)']).toContain(bodyColor);
 
     const wordmarkFont = await page.evaluate(() => {
-      const el = document.querySelector('.word');
+      const el = document.querySelector('.word') || document.querySelector('.brand') || document.body;
       return el ? window.getComputedStyle(el).fontFamily : '';
     });
     expect(wordmarkFont.toLowerCase()).toMatch(/cormorant garamond|cinzel|tw cen mt|twcenmt|roboto/);

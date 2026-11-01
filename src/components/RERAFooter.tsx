@@ -3,6 +3,7 @@ import React from 'react';
 export const RERAFooter: React.FC = () => {
   return (
     <footer
+      className="nitaara-footer"
       style={{
         background: '#111110',
         borderTop: '1px solid rgba(197, 155, 60, 0.25)',

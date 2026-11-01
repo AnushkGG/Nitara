@@ -701,7 +701,6 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
   }, []);
 
   const handleInquire = (unitInfo?: { floor?: number; unitNo?: string; label?: string; price?: string }) => {
-    setToastMsg('Demo: this opens the private tour / floor plan request form.');
     if (unitInfo) {
       setEnquiryPrefill(unitInfo);
       setEnquiryMode('floorplan');
@@ -721,7 +720,6 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
   };
 
   const handleSiteVisit = () => {
-    setToastMsg('Demo: this opens the private tour / site visit enquiry form.');
     if (selectedFloor) {
       const units = getFloorUnits(selectedFloor.n);
       const curr = units.find((u) => u.unitNo === activeUnitNo) || units[0];
@@ -742,19 +740,31 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
   };
 
   const handleNavClick = (section: string) => {
-    if (section === 'residences') {
-      const f = FLOORS.find((x) => x.n === 12) || FLOORS[0];
-      if (f) enterFloor(f);
-    } else if (section === 'penthouses') {
-      const f = FLOORS.find((x) => x.n === 25) || FLOORS[0];
-      if (f) enterFloor(f);
-    } else if (section === 'amenities') {
-      setToastMsg('Level 26 Rooftop Sky Retreat & Infinity Pool — 7 Luxury Lifestyle Amenities.');
-    } else if (section === 'layout' || section === 'floorplans') {
+    if (section === 'floorplans' || section === 'layout') {
       setFloorPlansTab('all');
       setFloorPlansOpen(true);
+    } else if (section === 'amenities') {
+      const el = document.getElementById('amenities');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        setToastMsg('Level 26 Rooftop Sky Retreat & Infinity Pool — 7 Luxury Lifestyle Amenities.');
+      }
+    } else if (section === 'overview' || section === 'configurations' || section === 'residences') {
+      const el = document.getElementById('highlights') || document.getElementById('configurations');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        const f = FLOORS.find((x) => x.n === 12) || FLOORS[0];
+        if (f) enterFloor(f);
+      }
     } else {
-      setToastMsg(`Navigating to ${section}.`);
+      const el = document.getElementById(section);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        setToastMsg(`Navigating to ${section}.`);
+      }
     }
   };
 
@@ -1034,7 +1044,10 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
       <div id="flash" ref={flashRef} className="layer" />
 
       {/* CHROME */}
-      <Header onInquire={handleInquire} onNavigate={handleNavClick} />
+      <Header
+        onInquire={() => (_onGlobalEnquire ? _onGlobalEnquire() : handleSiteVisit())}
+        onNavigate={handleNavClick}
+      />
 
       <FloorTag
         floor={hoverFloor}
@@ -1133,6 +1146,44 @@ export const TowerExplorer: React.FC<TowerExplorerProps> = ({ onGlobalEnquire: _
           >
             <span>📍 Request Site Visit</span>
           </button>
+        </div>
+      )}
+
+      {/* Sky Retreat Ambient Card */}
+      {view === 'tower' && (
+        <div
+          className="sky-retreat-ambient"
+          onClick={() => {
+            const el = document.getElementById('amenities');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+            else setToastMsg('Level 26 Rooftop Sky Retreat & Pool — Nigdi Pradhikaran');
+          }}
+          role="button"
+          tabIndex={0}
+          title="Explore Level 26 Rooftop Sky Retreat & Pool"
+        >
+          <img src="/assets/nitaara/banner/desk3.jpg" alt="Level 26 Sky Retreat" />
+          <div className="sky-retreat-ambient-label">
+            Level 26 — Sky Retreat
+            <div className="sky-retreat-ambient-sublabel">Infinity Pool · Rooftop Deck</div>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Scroll Cue */}
+      {view === 'tower' && (
+        <div
+          className="hero-scroll-cue"
+          role="button"
+          tabIndex={0}
+          style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+          onClick={() => document.getElementById('highlights')?.scrollIntoView({ behavior: 'smooth' })}
+          title="Scroll down to explore"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+          <span>Explore</span>
         </div>
       )}
 

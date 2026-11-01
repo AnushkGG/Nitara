@@ -9,12 +9,12 @@ test.describe('Core & Secondary Interactions', () => {
     // Wait for tower image to be ready
     await page.waitForSelector('#towerImg');
 
-    // Click Private Tour CTA and assert toast notification
+    // Click "Request Site Visit" CTA and assert modal opens, then close it
     const cta = page.locator('.nav .cta');
     await cta.click();
-    const toast = page.locator('.toast');
-    await expect(toast).toBeVisible();
-    await expect(toast).toContainText('Demo: this opens the private tour');
+    const modalClose = page.locator('button[aria-label="Close modal"]');
+    await expect(modalClose).toBeVisible();
+    await modalClose.click();
 
     // Hover or click Floor 22
     const floor22Band = page.locator('#bands [data-n="22"]');
